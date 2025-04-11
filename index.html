@@ -1,142 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sajku | Official Website</title>
-  <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
-    header { background-color: #007bff; color: white; padding: 20px; text-align: center; }
-    nav { background-color: #333; overflow: hidden; text-align: center; }
-    nav a { display: inline-block; color: white; padding: 14px 20px; text-decoration: none; }
-    nav a:hover { background-color: #575757; }
-    main { padding: 20px; background: #f5f5f5; min-height: 60vh; text-align: center; }
-    footer { background-color: #007bff; color: white; text-align: center; padding: 10px; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Welcome to Sajku's Website</h1>
-  </header>
-  <nav>
-    <a href="#">Home</a>
-    <a href="#">About</a>
-    <a href="#">Contact</a>
-  </nav>
-  <main>
-    <h2>Hello Duniya!</h2>
-    <p>Yeh meri pehli GitHub Pages website hai — ab isse banaenge ek Sajku dhamaka brand!</p>
-  </main>
-  <footer>
-    <p>© 2025 Sajku. All rights reserved.</p>
-  </footer>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sajku - Official App Store</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku App Store</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: #0f0f0f;
-      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f4f6;
+      color: #111;
     }
     header {
-      background: #1f1f1f;
-      padding: 20px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      background: #111827;
+      color: white;
+      padding: 20px;
+      text-align: center;
     }
     header h1 {
-      font-size: 1.8rem;
-      color: #00eaff;
+      margin: 0;
+      font-size: 2em;
+    }
+    nav {
+      background: #1f2937;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      padding: 15px;
     }
     nav a {
-      color: #fff;
+      color: white;
       text-decoration: none;
-      margin-left: 20px;
-      font-weight: 600;
+      font-weight: bold;
     }
     .hero {
+      background: linear-gradient(to right, #4f46e5, #3b82f6);
+      color: white;
+      padding: 50px 20px;
       text-align: center;
-      padding: 80px 20px;
-      background: linear-gradient(135deg, #00eaff, #0052d4);
-      color: #000;
     }
     .hero h2 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
+      font-size: 2.2em;
+      margin-bottom: 15px;
     }
     .hero p {
-      font-size: 1.2rem;
+      font-size: 1.1em;
+      margin-bottom: 25px;
+    }
+    .hero a {
+      background: white;
+      color: #1d4ed8;
+      padding: 12px 25px;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 8px;
     }
     .features {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
       padding: 40px 20px;
-      gap: 30px;
     }
-    .feature {
-      background: #1c1c1c;
-      border-radius: 20px;
+    .card {
+      background: white;
+      border-radius: 12px;
       padding: 20px;
-      width: 280px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
       text-align: center;
-      box-shadow: 0 0 20px rgba(0, 234, 255, 0.2);
     }
-    .feature h3 {
-      color: #00eaff;
+    .card h3 {
       margin-bottom: 10px;
     }
     footer {
-      background: #1a1a1a;
+      background: #111827;
+      color: white;
       text-align: center;
-      padding: 20px;
-      font-size: 0.9rem;
-      color: #aaa;
+      padding: 15px;
     }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>Sajku</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#apps">Apps</a>
-      <a href="#join">Join</a>
-    </nav>
+    <h1>Sajku App Store</h1>
+    <p>India’s #1 Community-Powered App Platform</p>
   </header>
 
+  <nav>
+    <a href="#">Home</a>
+    <a href="upload.html">Upload App</a>
+    <a href="#">Rewards</a>
+    <a href="#">Horoscope</a>
+    <a href="#">Contact</a>
+  </nav>
+
   <section class="hero">
-    <h2>Welcome to Sajku</h2>
-    <p>The Ultimate Desi App Store for Everyone</p>
+    <h2>Upload Apps. Get Downloads. Earn Money.</h2>
+    <p>Join the Sajku platform and grow your app to the next level — all from mobile.</p>
+    <a href="upload.html">Start Uploading</a>
   </section>
 
   <section class="features">
-    <div class="feature">
-      <h3>Secure Apps</h3>
-      <p>Only verified and safe apps for all users.</p>
+    <div class="card">
+      <h3>Verified Developer Badge</h3>
+      <p>Get recognition and boost downloads as a trusted uploader.</p>
     </div>
-    <div class="feature">
-      <h3>Earn by Upload</h3>
-      <p>Upload your app and earn from ads easily.</p>
+    <div class="card">
+      <h3>Rewarded Downloads</h3>
+      <p>Users earn money by downloading & keeping your apps longer.</p>
     </div>
-    <div class="feature">
-      <h3>Viral Boost</h3>
-      <p>Get bonus when users share your app.</p>
+    <div class="card">
+      <h3>Built-in Ad System</h3>
+      <p>Auto AdMob system – No coding needed to monetize.</p>
+    </div>
+    <div class="card">
+      <h3>Horoscope App Boost</h3>
+      <p>Special promotions for trending categories like astrology.</p>
     </div>
   </section>
 
   <footer>
-    &copy; 2025 Sajku. All rights reserved.
+    © 2025 Sajku App Store – All rights reserved.
   </footer>
+
 </body>
 </html>
