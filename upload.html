@@ -1,1 +1,92 @@
-1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Your App | Sajku Store</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    label {
+      margin-top: 15px;
+      display: block;
+      font-weight: bold;
+    }
+    .btn {
+      background: #22c55e;
+      color: white;
+      border: none;
+      margin-top: 20px;
+      padding: 14px;
+      font-size: 16px;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #16a34a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Upload Your App to Sajku</h2>
+
+    <form id="uploadForm">
+      <label>Developer Name</label>
+      <input type="text" placeholder="Your name" required>
+
+      <label>App Name</label>
+      <input type="text" placeholder="Enter app name" required>
+
+      <label>App Description</label>
+      <textarea rows="4" placeholder="Describe your app..." required></textarea>
+
+      <label>App Icon</label>
+      <input type="file" accept="image/*" required>
+
+      <label>APK File</label>
+      <input type="file" accept=".apk" required>
+
+      <label>AdMob App ID (Optional)</label>
+      <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxx~xxxxxxx">
+
+      <label>Banner Ad Unit ID (Optional)</label>
+      <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxx/xxxxxxx">
+
+      <label>Interstitial Ad Unit ID (Optional)</label>
+      <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxx/xxxxxxx">
+
+      <button class="btn" type="submit">Submit App</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      alert("App submitted successfully!\n(Connect to Firebase/Google Sheet next)");
+    });
+  </script>
+</body>
+</html>
+
