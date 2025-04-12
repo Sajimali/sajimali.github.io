@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Your Sajku ID</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #1e1e2f;
+      color: white;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #2e2e4d;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #000;
+    }
+
+    h2 {
+      text-align: center;
+      color: #ffde59;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-size: 0.9em;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background-color: #ffde59;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      color: #1e1e2f;
+    }
+
+    button:hover {
+      background-color: #ffc107;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Create Your ID</h2>
+
+    <form id="idForm">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" placeholder="Enter your name" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email" required>
+
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Choose a username" required>
+
+      <label for="upi">Bank / UPI ID</label>
+      <input type="text" id="upi" placeholder="Enter UPI ID or Bank Ac No" required>
+
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("idForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      alert("Your ID has been created successfully!");
+      window.location.href = "home.html"; // Next page after registration
+    });
+  </script>
+
+</body>
+</html>
