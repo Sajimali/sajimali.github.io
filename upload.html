@@ -1,92 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload Your App | Sajku Store</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sajku - Start Earning</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: white;
+      background: linear-gradient(to bottom right, #f7f7f7, #d4f1f4);
       padding: 20px;
+      text-align: center;
     }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background: #1e293b;
+    h1 {
+      color: #1a73e8;
+    }
+    .info-box {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      margin: 20px auto;
+      max-width: 400px;
     }
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
+    ul {
+      list-style-type: none;
+      padding: 0;
     }
-    label {
-      margin-top: 15px;
-      display: block;
+    ul li {
+      padding: 5px 0;
       font-weight: bold;
     }
-    .btn {
-      background: #22c55e;
-      color: white;
-      border: none;
-      margin-top: 20px;
-      padding: 14px;
-      font-size: 16px;
-      width: 100%;
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
       border-radius: 8px;
+    }
+    button {
+      background: #1a73e8;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
     }
-    .btn:hover {
-      background: #16a34a;
+    button:hover {
+      background: #135cc5;
+    }
+    a {
+      color: #1a73e8;
+      text-decoration: none;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Upload Your App to Sajku</h2>
 
-    <form id="uploadForm">
-      <label>Developer Name</label>
-      <input type="text" placeholder="Your name" required>
+  <h1>Earn Money by Using Sajku</h1>
+  <p>Create your ID now & transfer money after ₹10 balance!</p>
 
-      <label>App Name</label>
-      <input type="text" placeholder="Enter app name" required>
-
-      <label>App Description</label>
-      <textarea rows="4" placeholder="Describe your app..." required></textarea>
-
-      <label>App Icon</label>
-      <input type="file" accept="image/*" required>
-
-      <label>APK File</label>
-      <input type="file" accept=".apk" required>
-
-      <label>AdMob App ID (Optional)</label>
-      <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxx~xxxxxxx">
-
-      <label>Banner Ad Unit ID (Optional)</label>
-      <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxx/xxxxxxx">
-
-      <label>Interstitial Ad Unit ID (Optional)</label>
-      <input type="text" placeholder="ca-app-pub-xxxxxxxxxxxxx/xxxxxxx">
-
-      <button class="btn" type="submit">Submit App</button>
-    </form>
+  <div class="info-box">
+    <ul>
+      <li>✓ Download = ₹0.10</li>
+      <li>✓ Upload Apps = Passive Income</li>
+      <li>✓ Watch Ads = Extra ₹</li>
+    </ul>
   </div>
 
-  <script>
-    document.getElementById("uploadForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      alert("App submitted successfully!\n(Connect to Firebase/Google Sheet next)");
-    });
-  </script>
+  <form>
+    <input type="text" placeholder="Full Name" required />
+    <input type="email" placeholder="Email" required />
+    <input type="text" placeholder="Username" required />
+    <input type="password" placeholder="Password" required />
+    <input type="password" placeholder="Confirm Password" required />
+    <input type="text" placeholder="UPI or Bank Account" required />
+    <button type="submit">Create Account</button>
+  </form>
+
+  <p>Already have an account? <a href="#">Login</a></p>
+
 </body>
 </html>
-
