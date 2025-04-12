@@ -1,83 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sajku App Store</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
     body {
-      background: #121212;
+      background: #f2f2f2;
+    }
+    header {
+      background: #0d47a1;
       color: white;
-      font-family: 'Segoe UI', sans-serif;
-      padding: 20px;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-
-    .header {
-      text-align: center;
-      margin-bottom: 25px;
+    header h1 {
+      font-size: 22px;
     }
-
-    .header h1 {
-      color: #ffde59;
+    .profile {
+      background: white;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
     }
-
-    .card {
-      background: #1f1f2e;
-      padding: 20px;
-      margin: 15px 0;
+    .banner {
+      background: url('https://via.placeholder.com/400x150') no-repeat center/cover;
+      height: 150px;
+      margin: 10px;
       border-radius: 10px;
-      box-shadow: 0 0 10px #000;
     }
-
-    .card h2 {
-      color: #00ffae;
+    .apps {
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
-
-    button {
-      padding: 12px 20px;
-      margin-top: 10px;
-      background: #ffde59;
-      color: black;
+    .app-card {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .app-card img {
+      width: 60px;
+      height: 60px;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      border-top: 1px solid #ccc;
+    }
+    .bottom-nav button {
+      background: none;
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #ffc107;
+      font-size: 14px;
+      color: #0d47a1;
     }
   </style>
 </head>
 <body>
+  <header>
+    <h1>Sajku Store</h1>
+    <div class="profile" onclick="openProfilePanel()"></div>
+  </header>
 
-  <div class="header">
-    <h1>Welcome to Sajku Dashboard</h1>
-    <p>Earning starts now! Upload apps, get downloads, and earn money.</p>
+  <div class="banner"></div>
+
+  <section class="apps">
+    <div class="app-card">
+      <img src="https://via.placeholder.com/60" alt="App Icon" />
+      <p>App Name</p>
+      <button>Download</button>
+    </div>
+    <!-- More app cards -->
+  </section>
+
+  <div class="bottom-nav">
+    <button>Home</button>
+    <button>Games</button>
+    <button>Apps</button>
+    <button>Offers</button>
+    <button>Search</button>
   </div>
 
-  <div class="card">
-    <h2>Your Balance: ₹0.00</h2>
-    <p>Minimum ₹10 required to withdraw.</p>
-    <button onclick="alert('Withdraw system coming soon')">Withdraw Now</button>
-  </div>
-
-  <div class="card">
-    <h2>Upload Your App</h2>
-    <p>Add your APK file and set up AdMob ID (optional).</p>
-    <button onclick="alert('Upload form coming soon')">Upload App</button>
-  </div>
-
-  <div class="card">
-    <h2>AdMob Setup</h2>
-    <p>Use your own AdMob code or use Sajku system and earn 70% revenue.</p>
-    <button onclick="alert('AdMob setup page coming soon')">Setup AdMob</button>
-  </div>
-
-  <div class="card">
-    <h2>Your Apps</h2>
-    <p>No apps uploaded yet.</p>
-  </div>
-
+  <script>
+    function openProfilePanel() {
+      alert("Profile panel with earnings, AdMob setup, and upload options coming soon!");
+    }
+  </script>
 </body>
 </html>
+
