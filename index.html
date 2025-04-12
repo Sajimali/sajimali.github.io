@@ -3,65 +3,96 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sajku Earning App</title>
+  <title>Sajku App Login</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #1e1e2f, #3e3e5f);
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: white;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       text-align: center;
+      padding: 30px;
     }
-
-    .logo {
-      font-size: 2.5em;
-      font-weight: bold;
-      margin-bottom: 20px;
-      color: #ffde59;
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: #ffffff10;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(255,255,255,0.1);
     }
-
-    .headline {
-      font-size: 1.2em;
-      margin-bottom: 15px;
-    }
-
-    .sub-text {
-      font-size: 0.95em;
-      color: #ccc;
-      margin-bottom: 30px;
-    }
-
-    .start-button {
-      background: #ffde59;
-      color: #1e1e2f;
-      padding: 15px 30px;
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
       border: none;
-      border-radius: 10px;
-      font-size: 1em;
+      font-size: 16px;
+    }
+    input {
+      background-color: #ffffffdd;
+    }
+    button {
+      background-color: #00c853;
+      color: white;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 0 10px #000;
     }
-
-    .start-button:hover {
-      background: #ffc107;
+    .link-btn {
+      background: none;
+      color: #03a9f4;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Welcome to Sajku</h2>
+    <p><strong>Create your ID to earn money by downloading and uploading apps</strong></p>
+    <p>Minimum ₹10 required for payout to your bank account</p>
 
-  <div class="logo">SAJKU</div>
-  <div class="headline">Upload & Download Apps — Earn Money Daily!</div>
-  <div class="sub-text">Minimum ₹10 earnings required to transfer money to your bank account.</div>
-  <button class="start-button" onclick="window.location.href='create_id.html'">
-    Create Your ID
-  </button>
+    <div id="signup">
+      <input type="text" placeholder="Full Name" id="name" />
+      <input type="email" placeholder="Email" id="email" />
+      <input type="text" placeholder="Username" id="username" />
+      <input type="password" placeholder="Password" id="password" />
+      <button onclick="signup()">Create ID</button>
+      <button class="link-btn" onclick="toggleForm('login')">Already have ID? Login</button>
+    </div>
 
+    <div id="login" style="display: none">
+      <input type="text" placeholder="Username" id="loginUsername" />
+      <input type="password" placeholder="Password" id="loginPassword" />
+      <button onclick="login()">Login</button>
+      <button class="link-btn" onclick="toggleForm('signup')">Create new ID</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleForm(form) {
+      document.getElementById("signup").style.display = form === 'signup' ? 'block' : 'none';
+      document.getElementById("login").style.display = form === 'login' ? 'block' : 'none';
+    }
+
+    function signup() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      // Airtable/Firebase connection yahan hoga (to be added in next step)
+      alert(`Welcome ${name}! Your ID has been created.`);
+      // Redirect to home page (basic)
+      window.location.href = "home.html?user=" + encodeURIComponent(username);
+    }
+
+    function login() {
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
+
+      // Simple login check yahan hoga (connect Airtable/Firebase later)
+      alert(`Welcome back, ${username}!`);
+      window.location.href = "home.html?user=" + encodeURIComponent(username);
+    }
+  </script>
 </body>
 </html>
