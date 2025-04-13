@@ -1,2 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sajku Store</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff;
+    }
+    header {
+      background-color: #1f8a70;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .id-section {
+      font-size: 14px;
+      text-align: right;
+    }
+    .id-section span {
+      font-weight: bold;
+      color: #ffdf00;
+    }
+    .tabs {
+      display: flex;
+      overflow-x: auto;
+      background: #f2f2f2;
+      padding: 10px 0;
+    }
+    .tabs div {
+      flex: none;
+      margin: 0 15px;
+      font-weight: bold;
+      color: #1f8a70;
+    }
+    .apps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      padding: 15px;
+    }
+    .app-card {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+    }
+    .app-card img {
+      width: 60px;
+      height: 60px;
+    }
+    .app-card button {
+      margin-top: 8px;
+      padding: 5px 10px;
+      background-color: #1f8a70;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 12px;
+    }
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #1f8a70;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      color: white;
+    }
+    nav div {
+      text-align: center;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Sajku Store</h1>
+  <div class="id-section">
+    <div><a href="#" style="color:white; text-decoration:underline">Create ID</a></div>
+    <div><small><span>Earn money</span> from your uploads & downloads</small></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div>For You</div>
+  <div>Top Charts</div>
+  <div>Categories</div>
+  <div>Premium</div>
+  <div>Kids</div>
+</div>
+
+<div class="apps">
+  <div class="app-card">
+    <img src="https://via.placeholder.com/60" alt="App">
+    <div>App One</div>
+    <button>Download</button>
+  </div>
+  <div class="app-card">
+    <img src="https://via.placeholder.com/60" alt="App">
+    <div>App Two</div>
+    <button>Download</button>
+  </div>
+  <div class="app-card">
+    <img src="https://via.placeholder.com/60" alt="App">
+    <div>App Three</div>
+    <button>Download</button>
+  </div>
+  <div class="app-card">
+    <img src="https://via.placeholder.com/60" alt="App">
+    <div>App Four</div>
+    <button>Download</button>
+  </div>
+</div>
+
+<nav>
+  <div>
+    <div>Games</div>
+  </div>
+  <div>
+    <div>Apps</div>
+  </div>
+  <div>
+    <div>Search</div>
+  </div>
+  <div>
+    <div>Profile</div>
+  </div>
+</nav>
+
+</body>
+</html>
 
 
