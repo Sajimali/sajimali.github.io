@@ -296,67 +296,29 @@
   </script>
 </body>
 </html>
-<script type="module">
-  // Firebase SDKs
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-
-  // Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBsGAYyvFJzSocD1Pz096YlahEQ-X59M6E",
-    authDomain: "sajku-gemini-test.firebaseapp.com",
-    projectId: "sajku-gemini-test",
-    storageBucket: "sajku-gemini-test.appspot.com",
-    messagingSenderId: "488170984043",
-    appId: "1:488170984043:web:923905a16447ea1713172e",
-    measurementId: "G-8ZN44E03SK"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  // Sign Up
-  window.signup = function () {
-    const email = document.getElementById("signup-email").value;
-    const password = document.getElementById("signup-password").value;
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(userCredential => alert("Signup Success!"))
-      .catch(error => alert(error.message));
-  }
-
-  // Login
-  window.login = function () {
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
-    signInWithEmailAndPassword(auth, email, password)
-      .then(userCredential => alert("Login Success!"))
-      .catch(error => alert(error.message));
-  }
-
-  // Auth state observer
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      document.getElementById("auth-status").innerText = "Logged in as: " + user.email;
-    } else {
-      document.getElementById("auth-status").innerText = "Not Logged In";
-    }
-  });
-
-  // Logout
-  window.logout = function () {
-    signOut(auth).then(() => alert("Logged out!"));
+<!-- User Icon Top-Right -->
+<div style="position: absolute; top: 20px; right: 20px;">
+  <button onclick="toggleAuthForm()" style="border: none; background: none;">
+    <img src="https://img.icons8.com/ios-filled/50/user-male-circle.png" width="40" height="40"/>
+  </button>
+</div>
+<!-- Auth Form (hidden at first) -->
+<div id="auth-box" style="display: none; position: absolute; top: 70px; right: 20px; background: white; padding: 15px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 250px; z-index: 999;">
+  <h4>Signup</h4>
+  <input type="email" id="signup-email" placeholder="Email"><br><br>
+  <input type="password" id="signup-password" placeholder="Password"><br><br>
+  <button onclick="signup()">Sign Up</button>
+  <hr>
+  <h4>Login</h4>
+  <input type="email" id="login-email" placeholder="Email"><br><br>
+  <input type="password" id="login-password" placeholder="Password"><br><br>
+  <button onclick="login()">Login</button><br><br>
+  <p id="auth-status" style="font-size: 14px;"></p>
+  <button onclick="logout()">Logout</button>
+</div>
+<script>
+  function toggleAuthForm() {
+    const box = document.getElementById("auth-box");
+    box.style.display = (box.style.display === "none" ? "block" : "none");
   }
 </script>
-<h2>Signup</h2>
-<input type="email" id="signup-email" placeholder="Email">
-<input type="password" id="signup-password" placeholder="Password">
-<button onclick="signup()">Sign Up</button>
-
-<h2>Login</h2>
-<input type="email" id="login-email" placeholder="Email">
-<input type="password" id="login-password" placeholder="Password">
-<button onclick="login()">Login</button>
-
-<h2 id="auth-status">Checking auth status...</h2>
-<button onclick="logout()">Logout</button>
