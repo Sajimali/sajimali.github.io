@@ -29,4 +29,138 @@
   </script>
 </body>
 </html>
-      
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku Store</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+    }
+
+    header {
+      background-color: #1a73e8;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .user-info {
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .banner {
+      width: 100%;
+      height: 160px;
+      background: url('https://via.placeholder.com/800x200?text=Sajku+Banner') no-repeat center;
+      background-size: cover;
+      border-bottom: 3px solid #1a73e8;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 15px;
+    }
+
+    .app-card {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .app-card img {
+      width: 70px;
+      height: 70px;
+      border-radius: 12px;
+    }
+
+    .app-card h3 {
+      font-size: 16px;
+      margin: 10px 0 5px;
+    }
+
+    .download-btn {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      border-top: 1px solid #ccc;
+    }
+
+    footer button {
+      flex: 1;
+      padding: 10px 0;
+      font-size: 16px;
+      background: none;
+      border: none;
+      color: #1a73e8;
+    }
+
+    footer button:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Sajku</h1>
+    <div class="user-info">
+      ID: <strong>sajkuuser123</strong><br>
+      Balance: ₹0.00
+    </div>
+  </header>
+
+  <div class="banner"></div>
+
+  <div class="app-grid">
+    <div class="app-card">
+      <img src="https://via.placeholder.com/70" alt="App Icon">
+      <h3>Game 1</h3>
+      <button class="download-btn">Download</button>
+    </div>
+    <div class="app-card">
+      <img src="https://via.placeholder.com/70" alt="App Icon">
+      <h3>App 2</h3>
+      <button class="download-btn">Download</button>
+    </div>
+    <!-- Add more apps here -->
+  </div>
+
+  <footer>
+    <button>Games</button>
+    <button>Apps</button>
+    <button>Search</button>
+    <button>Offers</button>
+  </footer>
+
+</body>
+</html>
+
