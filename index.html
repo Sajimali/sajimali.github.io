@@ -142,7 +142,7 @@
 
 </body>
 </html>
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -221,21 +221,44 @@
 
   <div id="id-form">
     <h3>Create ID</h3>
-    <input type="text" placeholder="Full Name" />
-    <input type="text" placeholder="Username" />
-    <input type="email" placeholder="Email" />
-    <input type="password" placeholder="Password" />
-    <button>Create Account</button>
+    <input type="text" id="fullName" placeholder="Full Name" />
+    <input type="text" id="username" placeholder="Username" />
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="saveID()">Create Account</button>
+    <p id="success" style="color:green;"></p>
   </div>
 
   <script>
     function toggleForm() {
       const form = document.getElementById("id-form");
-      if (form.style.display === "none" || form.style.display === "") {
-        form.style.display = "block";
-      } else {
-        form.style.display = "none";
+      form.style.display = form.style.display === "block" ? "none" : "block";
+    }
+
+    function saveID() {
+      const fullName = document.getElementById("fullName").value;
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if (!fullName || !username || !email || !password) {
+        alert("Please fill in all fields.");
+        return;
       }
+
+      const userData = {
+        fullName,
+        username,
+        email,
+        password
+      };
+
+      localStorage.setItem("sajkuUser", JSON.stringify(userData));
+
+      document.getElementById("success").innerText = "ID Created Successfully!";
+      setTimeout(() => {
+        document.getElementById("id-form").style.display = "none";
+      }, 2000);
     }
   </script>
 </body>
