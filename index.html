@@ -142,3 +142,50 @@
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku App Store</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="logo">Sajku Store</div>
+    <div class="user-id" onclick="openProfile()">My ID</div>
+  </header>
+
+  <section class="profile" id="profile" style="display: none;">
+    <h2>My Profile</h2>
+    <input type="text" placeholder="Name" id="name" />
+    <input type="text" placeholder="Username" id="username" />
+    <input type="email" placeholder="Email" id="email" />
+    <input type="password" placeholder="Password" id="password" />
+    <button onclick="saveProfile()">Save Profile</button>
+
+    <h3>My Earnings: ₹<span id="earning">0.00</span></h3>
+    <button onclick="withdraw()">Withdraw to Bank</button>
+
+    <div class="upload-section">
+      <h3>Upload Your App</h3>
+      <input type="text" placeholder="App Name" />
+      <textarea placeholder="Description"></textarea>
+      <input type="file" accept="image/*" />
+      <textarea placeholder="AdMob Codes (Banner, Interstitial) or leave blank for system ads"></textarea>
+      <button>Upload App</button>
+    </div>
+
+    <h4>Your Uploaded Apps</h4>
+    <div id="myApps"></div>
+  </section>
+
+  <section class="apps-list">
+    <h2>Explore Apps</h2>
+    <div id="allApps"></div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
