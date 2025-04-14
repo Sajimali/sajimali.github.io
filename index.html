@@ -147,45 +147,96 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku App Store</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Sajku App</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      position: relative;
+      background-color: #f5f5f5;
+    }
+
+    header {
+      background-color: #333;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    #id-button {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #007bff;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #id-form {
+      display: none;
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    #id-form input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #id-form button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #id-form button:hover {
+      background-color: #218838;
+    }
+  </style>
 </head>
 <body>
-
   <header>
-    <div class="logo">Sajku Store</div>
-    <div class="user-id" onclick="openProfile()">My ID</div>
+    Sajku App Platform
   </header>
 
-  <section class="profile" id="profile" style="display: none;">
-    <h2>My Profile</h2>
-    <input type="text" placeholder="Name" id="name" />
-    <input type="text" placeholder="Username" id="username" />
-    <input type="email" placeholder="Email" id="email" />
-    <input type="password" placeholder="Password" id="password" />
-    <button onclick="saveProfile()">Save Profile</button>
+  <div id="id-button" onclick="toggleForm()">ID</div>
 
-    <h3>My Earnings: ₹<span id="earning">0.00</span></h3>
-    <button onclick="withdraw()">Withdraw to Bank</button>
+  <div id="id-form">
+    <h3>Create ID</h3>
+    <input type="text" placeholder="Full Name" />
+    <input type="text" placeholder="Username" />
+    <input type="email" placeholder="Email" />
+    <input type="password" placeholder="Password" />
+    <button>Create Account</button>
+  </div>
 
-    <div class="upload-section">
-      <h3>Upload Your App</h3>
-      <input type="text" placeholder="App Name" />
-      <textarea placeholder="Description"></textarea>
-      <input type="file" accept="image/*" />
-      <textarea placeholder="AdMob Codes (Banner, Interstitial) or leave blank for system ads"></textarea>
-      <button>Upload App</button>
-    </div>
-
-    <h4>Your Uploaded Apps</h4>
-    <div id="myApps"></div>
-  </section>
-
-  <section class="apps-list">
-    <h2>Explore Apps</h2>
-    <div id="allApps"></div>
-  </section>
-
-  <script src="script.js"></script>
+  <script>
+    function toggleForm() {
+      const form = document.getElementById("id-form");
+      if (form.style.display === "none" || form.style.display === "") {
+        form.style.display = "block";
+      } else {
+        form.style.display = "none";
+      }
+    }
+  </script>
 </body>
 </html>
