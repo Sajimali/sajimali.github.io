@@ -263,3 +263,36 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku Firebase Test</title>
+</head>
+<body>
+  <h1>Firebase Connected!</h1>
+  <p>Aapka Firebase project successfully connect ho gaya.</p>
+
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBsGAYyvFJzSocD1Pz096YlahEQ-X59M6E",
+      authDomain: "sajku-gemini-test.firebaseapp.com",
+      projectId: "sajku-gemini-test",
+      storageBucket: "sajku-gemini-test.firebasestorage.app",
+      messagingSenderId: "488170984043",
+      appId: "1:488170984043:web:923905a16447ea1713172e",
+      measurementId: "G-8ZN44E03SK"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+</body>
+</html>
