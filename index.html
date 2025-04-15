@@ -163,4 +163,129 @@
 
 </body>
 </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sajku App Store</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      text-align: center;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #6200ea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #user-info {
+      margin-top: 20px;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Sajku App Store - Login System</h2>
+  
+  <div class="box" id="auth-box">
+    <h3>Sign Up</h3>
+    <input type="email" id="signup-email" placeholder="Email">
+    <input type="password" id="signup-password" placeholder="Password">
+    <button onclick="signUp()">Sign Up</button>
+
+    <h3 style="margin-top: 20px;">Login</h3>
+    <input type="email" id="login-email" placeholder="Email">
+    <input type="password" id="login-password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="user-info" style="display:none;">
+    Logged in as: <span id="user-email"></span><br>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBsGAYyvFJzSocD1Pz096YlahEQ-X59M6E",
+      authDomain: "sajku-gemini-test.firebaseapp.com",
+      projectId: "sajku-gemini-test",
+      storageBucket: "sajku-gemini-test.appspot.com",
+      messagingSenderId: "488170984043",
+      appId: "1:488170984043:web:923905a16447ea1713172e",
+      measurementId: "G-8ZN44E03SK"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Signup function
+    window.signUp = function() {
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(userCredential => alert("Signup Successful!"))
+        .catch(error => alert(error.message));
+    };
+
+    // Login function
+    window.login = function() {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      signInWithEmailAndPassword(auth, email, password)
+        .then(userCredential => {
+          alert("Login Successful!");
+        })
+        .catch(error => alert(error.message));
+    };
+
+    // Logout function
+    window.logout = function() {
+      signOut(auth).then(() => {
+        document.getElementById("auth-box").style.display = "block";
+        document.getElementById("user-info").style.display = "none";
+      });
+    };
+
+    // Realtime auth status
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById("auth-box").style.display = "none";
+        document.getElementById("user-info").style.display = "block";
+        document.getElementById("user-email").innerText = user.email;
+      } else {
+        document.getElementById("auth-box").style.display = "block";
+        document.getElementById("user-info").style.display = "none";
+      }
+    });
+  </script>
+
+</body>
+</html>
 
