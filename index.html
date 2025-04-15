@@ -1,75 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
+  <title>Sajku Login</title>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome to Sajku Store</title>
-  <style>
-    body {
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .container {
-      background: #1e2a38;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      width: 90%;
-      max-width: 400px;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #00c9a7;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      color: #fff;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-    .switch {
-      text-align: center;
-      margin-top: 15px;
-      color: #ccc;
-      cursor: pointer;
-    }
-    .switch:hover {
-      text-decoration: underline;
-    }
-  </style>
 </head>
 <body>
+  <h2>Sajku App Login / Sign Up</h2>
 
-  <div class="container" id="auth-container">
-    <h2 id="form-title">Create your Sajku ID</h2>
-    <input type="text" id="nameField" placeholder="Your Name" />
-    <input type="email" id="emailField" placeholder="Email Address" />
-    <input type="password" id="passwordField" placeholder="Password" />
-    <button onclick="handleSignup()">Sign Up</button>
-    <div class="switch" onclick="toggleForm()">Already have an account? Login</div>
+  <div>
+    <input type="email" id="email" placeholder="Enter email" /><br />
+    <input type="password" id="password" placeholder="Enter password" /><br />
+    
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="logIn()">Log In</button>
+    <p id="message"></p>
   </div>
 
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -78,54 +28,40 @@
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    let isLogin = false;
+    // Sign Up Function
+    window.signUp = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-    function toggleForm() {
-      isLogin = !isLogin;
-      document.getElementById("form-title").innerText = isLogin ? "Login to Sajku Store" : "Create your Sajku ID";
-      document.querySelector("button").innerText = isLogin ? "Login" : "Sign Up";
-      document.querySelector(".switch").innerText = isLogin
-        ? "Don't have an account? Sign Up"
-        : "Already have an account? Login";
-      document.getElementById("nameField").style.display = isLogin ? "none" : "block";
-    }
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          document.getElementById("message").innerText = "Signup successful!";
+        })
+        .catch((error) => {
+          document.getElementById("message").innerText = error.message;
+        });
+    };
 
-    window.handleSignup = function () {
-      const name = document.getElementById("nameField").value;
-      const email = document.getElementById("emailField").value;
-      const password = document.getElementById("passwordField").value;
+    // Login Function
+    window.logIn = function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-      if (isLogin) {
-        // Login flow
-        signInWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
-            alert("Login successful: " + userCredential.user.email);
-          })
-          .catch((error) => {
-            alert("Error: " + error.message);
-          });
-      } else {
-        // Signup flow
-        createUserWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
-            updateProfile(userCredential.user, {
-              displayName: name
-            }).then(() => {
-              alert("Account created for " + name);
-            });
-          })
-          .catch((error) => {
-            alert("Error: " + error.message);
-          });
-      }
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          document.getElementById("message").innerText = "Login successful!";
+        })
+        .catch((error) => {
+          document.getElementById("message").innerText = error.message;
+        });
     };
   </script>
 </body>
 </html>
+
 
