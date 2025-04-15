@@ -3,143 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku Store</title>
+  <title>Welcome to Sajku Store</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #0b57d0;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: bold;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     .container {
-      padding: 20px;
+      background: #1e2a38;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      width: 90%;
       max-width: 400px;
-      margin: auto;
-      background: white;
-      margin-top: 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
     }
     input {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
     }
     button {
       width: 100%;
       padding: 12px;
-      margin-top: 15px;
-      background-color: #0b57d0;
-      color: white;
+      background: #00c9a7;
       border: none;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    .hidden {
-      display: none;
-    }
-    #user-info {
-      margin-top: 20px;
-      background: #e8f0fe;
-      padding: 15px;
       border-radius: 8px;
+      font-size: 16px;
+      color: #fff;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .switch {
       text-align: center;
+      margin-top: 15px;
+      color: #ccc;
+      cursor: pointer;
+    }
+    .switch:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <header>Sajku App Store</header>
-  <div class="container">
-    <div id="auth-section">
-      <input type="email" id="email" placeholder="Enter your email" />
-      <input type="password" id="password" placeholder="Enter password" />
-      <button onclick="signup()">Sign Up</button>
-      <button onclick="login()">Login</button>
-    </div>
 
-    <div id="user-info" class="hidden">
-      <p id="welcome-text"></p>
-      <button onclick="logout()">Logout</button>
-    </div>
+  <div class="container" id="auth-container">
+    <h2 id="form-title">Create your Sajku ID</h2>
+    <input type="text" id="nameField" placeholder="Your Name" />
+    <input type="email" id="emailField" placeholder="Email Address" />
+    <input type="password" id="passwordField" placeholder="Password" />
+    <button onclick="handleSignup()">Sign Up</button>
+    <div class="switch" onclick="toggleForm()">Already have an account? Login</div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBsGAYyvFJzSocD1Pz096YlahEQ-X59M6E",
-      authDomain: "sajku-gemini-test.firebaseapp.com",
-      projectId: "sajku-gemini-test",
-      storageBucket: "sajku-gemini-test.appspot.com",
-      messagingSenderId: "488170984043",
-      appId: "1:488170984043:web:5fd6e6b90f4e98c513172e",
-      measurementId: "G-Z0RP8S8WLC"
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const authSection = document.getElementById("auth-section");
-    const userInfo = document.getElementById("user-info");
-    const welcomeText = document.getElementById("welcome-text");
+    let isLogin = false;
 
-    function signup() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          alert("Signup successful!");
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
+    function toggleForm() {
+      isLogin = !isLogin;
+      document.getElementById("form-title").innerText = isLogin ? "Login to Sajku Store" : "Create your Sajku ID";
+      document.querySelector("button").innerText = isLogin ? "Login" : "Sign Up";
+      document.querySelector(".switch").innerText = isLogin
+        ? "Don't have an account? Sign Up"
+        : "Already have an account? Login";
+      document.getElementById("nameField").style.display = isLogin ? "none" : "block";
     }
 
-    function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    window.handleSignup = function () {
+      const name = document.getElementById("nameField").value;
+      const email = document.getElementById("emailField").value;
+      const password = document.getElementById("passwordField").value;
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          alert("Login successful!");
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-    }
-
-    function logout() {
-      signOut(auth)
-        .then(() => {
-          alert("Logged out successfully!");
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-    }
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        authSection.classList.add("hidden");
-        userInfo.classList.remove("hidden");
-        welcomeText.innerText = `Welcome, ${user.email}`;
+      if (isLogin) {
+        // Login flow
+        signInWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            alert("Login successful: " + userCredential.user.email);
+          })
+          .catch((error) => {
+            alert("Error: " + error.message);
+          });
       } else {
-        authSection.classList.remove("hidden");
-        userInfo.classList.add("hidden");
+        // Signup flow
+        createUserWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            updateProfile(userCredential.user, {
+              displayName: name
+            }).then(() => {
+              alert("Account created for " + name);
+            });
+          })
+          .catch((error) => {
+            alert("Error: " + error.message);
+          });
       }
-    });
+    };
   </script>
 </body>
 </html>
+
