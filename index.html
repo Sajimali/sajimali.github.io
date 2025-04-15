@@ -1,22 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Sajku Login</title>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku Auth</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .auth-box {
+      background: #1c1c1c;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .auth-box h2 {
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 48%;
+      padding: 12px;
+      margin: 10px 1%;
+      border: none;
+      border-radius: 8px;
+      background-color: #00c6ff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #0077b6;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #f5c542;
+    }
+  </style>
 </head>
 <body>
-  <h2>Sajku App Login / Sign Up</h2>
-
-  <div>
-    <input type="email" id="email" placeholder="Enter email" /><br />
-    <input type="password" id="password" placeholder="Enter password" /><br />
-    
-    <button onclick="signUp()">Sign Up</button>
-    <button onclick="logIn()">Log In</button>
+  <div class="auth-box">
+    <h2>Welcome to Sajku</h2>
+    <input type="email" id="email" placeholder="Email Address" />
+    <input type="password" id="password" placeholder="Password" />
+    <div>
+      <button onclick="signUp()">Sign Up</button>
+      <button onclick="logIn()">Login</button>
+    </div>
     <p id="message"></p>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase Auth Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
@@ -33,7 +92,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Sign Up Function
     window.signUp = function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -47,7 +105,6 @@
         });
     };
 
-    // Login Function
     window.logIn = function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -63,5 +120,3 @@
   </script>
 </body>
 </html>
-
-
