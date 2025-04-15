@@ -2,290 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku Firebase Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sajku Store</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #f2f2f2; }
+    header { background: #1e88e5; color: white; padding: 16px; font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; padding: 16px; }
+    .card { background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .card img { width: 100%; border-radius: 8px; }
+    .card h3 { font-size: 16px; margin: 8px 0 4px; }
+    .card p { font-size: 12px; color: gray; }
+    #auth { margin-right: 10px; }
+  </style>
 </head>
 <body>
+  <header>
+    <div>Sajku Play Store</div>
+    <div id="auth">
+      <button onclick="signIn()">Login</button>
+    </div>
+  </header>
 
+  <main>
+    <div class="app-grid" id="appList">
+      <!-- Apps will load here -->
+    </div>
+  </main>
+
+  <!-- Firebase SDK -->
   <script type="module">
-    // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBsGAYyvFJzSocD1Pz096YlahEQ-X59M6E",
       authDomain: "sajku-gemini-test.firebaseapp.com",
       projectId: "sajku-gemini-test",
       storageBucket: "sajku-gemini-test.firebasestorage.app",
       messagingSenderId: "488170984043",
-      appId: "1:488170984043:web:923905a16447ea1713172e",
-      measurementId: "G-8ZN44E03SK"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku Store</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f2f2f2;
-    }
-
-    header {
-      background-color: #1a73e8;
-      color: white;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .user-info {
-      font-size: 14px;
-      text-align: right;
-    }
-
-    .banner {
-      width: 100%;
-      height: 160px;
-      background: url('https://via.placeholder.com/800x200?text=Sajku+Banner') no-repeat center;
-      background-size: cover;
-      border-bottom: 3px solid #1a73e8;
-    }
-
-    .app-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      padding: 15px;
-    }
-
-    .app-card {
-      background: white;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    .app-card img {
-      width: 70px;
-      height: 70px;
-      border-radius: 12px;
-    }
-
-    .app-card h3 {
-      font-size: 16px;
-      margin: 10px 0 5px;
-    }
-
-    .download-btn {
-      background: #1a73e8;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: white;
-      display: flex;
-      justify-content: space-around;
-      border-top: 1px solid #ccc;
-    }
-
-    footer button {
-      flex: 1;
-      padding: 10px 0;
-      font-size: 16px;
-      background: none;
-      border: none;
-      color: #1a73e8;
-    }
-
-    footer button:hover {
-      background: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1>Sajku</h1>
-    <div class="user-info">
-      ID: <strong>sajkuuser123</strong><br>
-      Balance: ₹0.00
-    </div>
-  </header>
-
-  <div class="banner"></div>
-
-  <div class="app-grid">
-    <div class="app-card">
-      <img src="https://via.placeholder.com/70" alt="App Icon">
-      <h3>Game 1</h3>
-      <button class="download-btn">Download</button>
-    </div>
-    <div class="app-card">
-      <img src="https://via.placeholder.com/70" alt="App Icon">
-      <h3>App 2</h3>
-      <button class="download-btn">Download</button>
-    </div>
-    <!-- Add more apps here -->
-  </div>
-
-  <footer>
-    <button>Games</button>
-    <button>Apps</button>
-    <button>Search</button>
-    <button>Offers</button>
-  </footer>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Sajku App Store</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-      text-align: center;
-    }
-    .box {
-      background: white;
-      padding: 20px;
-      max-width: 400px;
-      margin: auto;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      padding: 10px 20px;
-      background: #6200ea;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    #user-info {
-      margin-top: 20px;
-      font-weight: bold;
-      color: green;
-    }
-  </style>
-</head>
-<body>
-
-  <h2>Sajku App Store - Login System</h2>
-  
-  <div class="box" id="auth-box">
-    <h3>Sign Up</h3>
-    <input type="email" id="signup-email" placeholder="Email">
-    <input type="password" id="signup-password" placeholder="Password">
-    <button onclick="signUp()">Sign Up</button>
-
-    <h3 style="margin-top: 20px;">Login</h3>
-    <input type="email" id="login-email" placeholder="Email">
-    <input type="password" id="login-password" placeholder="Password">
-    <button onclick="login()">Login</button>
-  </div>
-
-  <div id="user-info" style="display:none;">
-    Logged in as: <span id="user-email"></span><br>
-    <button onclick="logout()">Logout</button>
-  </div>
-
-  <!-- Firebase SDKs -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBsGAYyvFJzSocD1Pz096YlahEQ-X59M6E",
-      authDomain: "sajku-gemini-test.firebaseapp.com",
-      projectId: "sajku-gemini-test",
-      storageBucket: "sajku-gemini-test.appspot.com",
-      messagingSenderId: "488170984043",
-      appId: "1:488170984043:web:923905a16447ea1713172e",
-      measurementId: "G-8ZN44E03SK"
+      appId: "1:488170984043:web:5fd6e6b90f4e98c513172e",
+      measurementId: "G-Z0RP8S8WLC"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const auth = getAuth();
+    const db = getFirestore();
 
-    // Signup function
-    window.signUp = function() {
-      const email = document.getElementById("signup-email").value;
-      const password = document.getElementById("signup-password").value;
-      createUserWithEmailAndPassword(auth, email, password)
-        .then(userCredential => alert("Signup Successful!"))
-        .catch(error => alert(error.message));
-    };
-
-    // Login function
-    window.login = function() {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
-      signInWithEmailAndPassword(auth, email, password)
-        .then(userCredential => {
-          alert("Login Successful!");
+    function signIn() {
+      const provider = new GoogleAuthProvider();
+      signInWithPopup(auth, provider)
+        .then(result => {
+          alert("Welcome, " + result.user.displayName);
         })
-        .catch(error => alert(error.message));
-    };
+        .catch(error => {
+          console.error("Login Error:", error);
+        });
+    }
 
-    // Logout function
-    window.logout = function() {
-      signOut(auth).then(() => {
-        document.getElementById("auth-box").style.display = "block";
-        document.getElementById("user-info").style.display = "none";
-      });
-    };
-
-    // Realtime auth status
-    onAuthStateChanged(auth, user => {
+    onAuthStateChanged(auth, (user) => {
+      const authDiv = document.getElementById("auth");
       if (user) {
-        document.getElementById("auth-box").style.display = "none";
-        document.getElementById("user-info").style.display = "block";
-        document.getElementById("user-email").innerText = user.email;
-      } else {
-        document.getElementById("auth-box").style.display = "block";
-        document.getElementById("user-info").style.display = "none";
+        authDiv.innerHTML = `<span>${user.displayName}</span>`;
       }
     });
-  </script>
 
+    async function loadApps() {
+      const appList = document.getElementById("appList");
+      const querySnapshot = await getDocs(collection(db, "apps"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        appList.innerHTML += `
+          <div class="card">
+            <img src="${data.image}" alt="${data.name}" />
+            <h3>${data.name}</h3>
+            <p>${data.description}</p>
+          </div>
+        `;
+      });
+    }
+
+    loadApps();
+  </script>
 </body>
 </html>
-
