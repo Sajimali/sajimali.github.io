@@ -1,139 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sajku App</title>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js"></script>
-
+  <title>Sajku Sign Up</title>
   <style>
-    /* Simple CSS for styling */
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
+      background: #f5f5f5;
+      font-family: sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
-
     .container {
-      width: 300px;
+      background: white;
       padding: 20px;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0 0 10px #ccc;
     }
-
-    h2 {
-      text-align: center;
-    }
-
-    input {
+    input, button {
       width: 100%;
-      padding: 10px;
       margin: 10px 0;
-      border: 1px solid #ccc;
+      padding: 10px;
       border-radius: 5px;
     }
-
     button {
-      width: 100%;
-      padding: 10px;
       background-color: #4CAF50;
       color: white;
       border: none;
-      border-radius: 5px;
-      cursor: pointer;
     }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
     .error {
       color: red;
+      font-size: 14px;
       text-align: center;
     }
   </style>
 </head>
-
 <body>
-
   <div class="container">
-    <h2>Sajku App Login</h2>
-
-    <!-- Signup Form -->
+    <h3>Create Your ID</h3>
     <input type="text" id="name" placeholder="Full Name">
     <input type="text" id="username" placeholder="Username">
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
     <input type="text" id="mobile" placeholder="Mobile Number">
-    <button onclick="signUp()">Sign Up</button>
-    <p id="error-message" class="error"></p>
+    <button id="signup">Sign Up</button>
+    <p class="error" id="error"></p>
   </div>
 
-  <!-- Firebase Config -->
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID",
-      measurementId: "YOUR_MEASUREMENT_ID"
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.firebasestorage.app",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56",
+      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
     };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getDatabase();
 
-    // Sign Up Function
-    function signUp() {
+    document.getElementById('signup').addEventListener('click', () => {
       const name = document.getElementById('name').value;
       const username = document.getElementById('username').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const mobile = document.getElementById('mobile').value;
+      const errorBox = document.getElementById('error');
 
-      // Basic Validation
       if (!name || !username || !email || !password || !mobile) {
-        document.getElementById('error-message').innerText = 'Please fill all fields!';
+        errorBox.textContent = "All fields are required.";
         return;
       }
 
-      // Firebase Auth Sign Up
-      auth.createUserWithEmailAndPassword(email, password)
+      createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-
-          // Saving user data to Firebase Database
-          db.ref('users/' + user.uid).set({
+          set(ref(db, 'users/' + user.uid), {
             name: name,
             username: username,
             email: email,
             mobile: mobile
           });
-
-          alert('Account Created Successfully!');
-          window.location.href = '/home.html'; // Redirect to homepage after successful sign-up
+          alert("Account created successfully!");
         })
         .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          document.getElementById('error-message').innerText = errorMessage;
+          errorBox.textContent = error.message;
         });
-    }
+    });
   </script>
-
 </body>
-
 </html>
