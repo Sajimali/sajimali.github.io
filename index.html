@@ -1,84 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku Auth</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .auth-box {
-      background: #1c1c1c;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    .auth-box h2 {
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 48%;
-      padding: 12px;
-      margin: 10px 1%;
-      border: none;
-      border-radius: 8px;
-      background-color: #00c6ff;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: #0077b6;
-    }
-
-    #message {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #f5c542;
-    }
-  </style>
-</head>
-<body>
-  <div class="auth-box">
-    <h2>Welcome to Sajku</h2>
-    <input type="email" id="email" placeholder="Email Address" />
-    <input type="password" id="password" placeholder="Password" />
-    <div>
-      <button onclick="signUp()">Sign Up</button>
-      <button onclick="logIn()">Login</button>
-    </div>
-    <p id="message"></p>
-  </div>
-
-  <!-- Firebase Auth Script -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sajku Sign Up</title>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -87,36 +19,87 @@
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const auth = getAuth();
 
-    window.signUp = function () {
+    document.getElementById("signupForm").addEventListener("submit", (e) => {
+      e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      const name = document.getElementById("name").value;
 
       createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-          document.getElementById("message").innerText = "Signup successful!";
+          localStorage.setItem("username", name);
+          document.getElementById("authBox").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+          document.getElementById("userName").innerText = name;
         })
         .catch((error) => {
-          document.getElementById("message").innerText = error.message;
+          alert("Signup failed: " + error.message);
         });
-    };
-
-    window.logIn = function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          document.getElementById("message").innerText = "Login successful!";
-        })
-        .catch((error) => {
-          document.getElementById("message").innerText = error.message;
-        });
-    };
+    });
   </script>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f1f1f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #4caf50;
+      color: white;
+      padding: 10px;
+      border: none;
+      width: 100%;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #dashboard {
+      display: none;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="box" id="authBox">
+    <h2>Create Your ID</h2>
+    <form id="signupForm">
+      <input type="text" id="name" placeholder="Your Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Sign Up</button>
+    </form>
+  </div>
+
+  <div class="box" id="dashboard">
+    <h2>Welcome, <span id="userName"></span>!</h2>
+    <p>This is your Dashboard. Upload apps, track earnings, and more coming soon!</p>
+  </div>
 </body>
 </html>
+
