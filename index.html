@@ -1,54 +1,60 @@
-<!-- SAJKU APP STORE SYSTEM -->
-<!-- Full Firebase + GitHub-ready Code with Default AdMob Integration -->
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sajku App Store</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <title>Create Sajku ID</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+    .box { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+    input { width: 100%; padding: 10px; margin: 10px 0; }
+    button { padding: 10px 20px; background: green; color: white; border: none; border-radius: 5px; }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <!-- UI: Login, Register, Dashboard, Upload Form, App List -->
+  <div class="box">
+    <h2>Create Your Sajku ID</h2>
+    <input type="text" id="name" placeholder="Full Name" required />
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <input type="text" id="mobile" placeholder="Mobile Number" required />
+    <button onclick="createID()">Create ID</button>
   </div>
 
-  <script>
-    // Firebase Config
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "XXXX",
-      appId: "APP_ID"
-    };
-    
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const storage = firebase.storage();
-
-    // Default AdMob Codes (User code optional)
-    const defaultAds = {
-      banner: 'ca-app-pub-5534254536913287/6837788351',
-      interstitial: 'ca-app-pub-5534254536913287/6044824702',
-      rewarded: 'ca-app-pub-5534254536913287/7212596405',
-      native: 'ca-app-pub-5534254536913287/3273351397',
-      appOpen: 'ca-app-pub-5534254536913287/7021024718'
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.firebasestorage.app",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
 
-    // Logic: If user doesn't input AdMob codes => use defaultAds
-    function getAdCode(userInput, type) {
-      return userInput && userInput.trim() !== '' ? userInput : defaultAds[type];
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const analytics = getAnalytics(app);
+
+    function createID() {
+      const name = document.getElementById('name').value;
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const mobile = document.getElementById('mobile').value;
+
+      const userID = 'sajku_' + Date.now();
+
+      set(ref(db, "users/" + userID), {
+        name, username, email, password, mobile, photo: "default.jpg"
+      });
+
+      localStorage.setItem("sajkuUserID", userID);
+      window.location.href = "home.html";
     }
-
-    // Use getAdCode() to assign ad placements on app load/render
   </script>
 </body>
 </html>
