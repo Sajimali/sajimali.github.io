@@ -1,84 +1,139 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sajku ID & Home</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sajku App</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js"></script>
+
   <style>
-    body { font-family: Arial; margin: 0; padding: 0; background: #f2f2f2; }
-    .container { padding: 20px; max-width: 500px; margin: auto; }
-    .profile-icon { position: absolute; top: 10px; right: 10px; width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 2px solid #000; cursor: pointer; }
-    .profile-icon img { width: 100%; height: 100%; object-fit: cover; }
-    .hidden { display: none; }
-    .app-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-    .app-card { background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+    /* Simple CSS for styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      width: 300px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+    }
   </style>
 </head>
-<body>
-  <div class="container" id="login-section">
-    <h2>Create Sajku ID</h2>
-    <input type="text" id="name" placeholder="Full Name" /><br><br>
-    <input type="text" id="username" placeholder="Username" /><br><br>
-    <input type="email" id="email" placeholder="Email" /><br><br>
-    <input type="password" id="password" placeholder="Password" /><br><br>
-    <input type="text" id="mobile" placeholder="Mobile Number" /><br><br>
-    <button onclick="createID()">Create ID</button>
-  </div>  <div class="container hidden" id="home-section">
-    <div class="profile-icon" onclick="alert('Profile settings soon')">
-      <img id="profile-pic" src="https://via.placeholder.com/100" />
-    </div>
-    <h2>Welcome, <span id="display-name"></span></h2>
-    <div class="app-list">
-      <div class="app-card">Game 1<br><button>Download</button></div>
-      <div class="app-card">Game 2<br><button>Download</button></div>
-    </div>
-  </div>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
+<body>
+
+  <div class="container">
+    <h2>Sajku App Login</h2>
+
+    <!-- Signup Form -->
+    <input type="text" id="name" placeholder="Full Name">
+    <input type="text" id="username" placeholder="Username">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <input type="text" id="mobile" placeholder="Mobile Number">
+    <button onclick="signUp()">Sign Up</button>
+    <p id="error-message" class="error"></p>
+  </div>
+
+  <!-- Firebase Config -->
+  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-      authDomain: "sajku-store.firebaseapp.com",
-      projectId: "sajku-store",
-      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com",
-      storageBucket: "sajku-store.appspot.com",
-      messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-    window.createID = function () {
-      const name = document.getElementById("name").value;
-      const username = document.getElementById("username").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const mobile = document.getElementById("mobile").value;
+    // Sign Up Function
+    function signUp() {
+      const name = document.getElementById('name').value;
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const mobile = document.getElementById('mobile').value;
 
+      // Basic Validation
       if (!name || !username || !email || !password || !mobile) {
-        alert("Please fill all fields");
+        document.getElementById('error-message').innerText = 'Please fill all fields!';
         return;
       }
 
-      const userData = { name, username, email, password, mobile };
-      set(ref(db, "users/" + username), userData).then(() => {
-        localStorage.setItem("sajkuUser", JSON.stringify(userData));
-        showHome(userData);
-      });
-    }
+      // Firebase Auth Sign Up
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
 
-    function showHome(user) {
-      document.getElementById("login-section").classList.add("hidden");
-      document.getElementById("home-section").classList.remove("hidden");
-      document.getElementById("display-name").innerText = user.name;
-    }
+          // Saving user data to Firebase Database
+          db.ref('users/' + user.uid).set({
+            name: name,
+            username: username,
+            email: email,
+            mobile: mobile
+          });
 
-    // Auto login if user exists
-    const savedUser = JSON.parse(localStorage.getItem("sajkuUser"));
-    if (savedUser) {
-      showHome(savedUser);
+          alert('Account Created Successfully!');
+          window.location.href = '/home.html'; // Redirect to homepage after successful sign-up
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          document.getElementById('error-message').innerText = errorMessage;
+        });
     }
-  </script></body>
+  </script>
+
+</body>
+
 </html>
-
-
