@@ -23,7 +23,7 @@
     .profile {
       display: flex;
       align-items: center;
-      cursor: pointer;
+      pointer-events: none; /* Disable click */
     }
     .profile img {
       width: 40px;
@@ -79,7 +79,7 @@
 
   <header>
     <h2>Sajku1 Store</h2>
-    <div class="profile" onclick="goToDashboard()">
+    <div class="profile">
       <img id="userPhoto" src="https://via.placeholder.com/40" alt="User Photo" />
       <span id="userName">User Name</span>
     </div>
@@ -114,37 +114,30 @@
     <a href="#"><i class="fa fa-money-bill"></i>Earnings</a>
   </nav>
 
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
   <script>
-    function goToDashboard() {
-      window.location.href = 'dashboard.html';
-    }
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-    // Firebase user info loading
-    import('https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js').then(async (firebaseApp) => {
-      const { initializeApp } = firebaseApp;
-      const app = initializeApp({
-        apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-        authDomain: "sajku-store.firebaseapp.com",
-        projectId: "sajku-store",
-        storageBucket: "sajku-store.appspot.com",
-        messagingSenderId: "831227140840",
-        appId: "1:831227140840:web:634cc6248ead6ab186075d",
-        measurementId: "G-BDH8FP9R56"
-      });
-
-      const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js');
-      const auth = getAuth(app);
-
-      onAuthStateChanged(auth, user => {
-        if (user) {
-          document.getElementById('userName').textContent = user.displayName || "No Name";
-          document.getElementById('userPhoto').src = user.photoURL || "https://via.placeholder.com/40";
-        }
-      });
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || "No Name";
+        document.getElementById('userPhoto').src = user.photoURL || "https://via.placeholder.com/40";
+      }
     });
   </script>
 </body>
 </html>
+
 
 
 
