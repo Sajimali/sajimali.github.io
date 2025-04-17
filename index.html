@@ -1,130 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sajku Store - Real App</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-      authDomain: "sajku-store.firebaseapp.com",
-      projectId: "sajku-store",
-      storageBucket: "sajku-store.appspot.com",
-      messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
-    const storage = getStorage(app);
-
-    let userData;
-
-    // Show signup form on app start
-    window.onload = () => {
-      document.getElementById('signupScreen').style.display = 'block';
-    };
-
-    document.getElementById('signupBtn').addEventListener('click', async () => {
-      const name = document.getElementById('name').value;
-      const username = document.getElementById('username').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const mobile = document.getElementById('mobile').value;
-
-      try {
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", userCred.user.uid), {
-          name, username, email, mobile, earnings: 0
-        });
-        document.getElementById('signupScreen').style.display = 'none';
-        loadHome();
-      } catch (e) {
-        alert("Signup failed: " + e.message);
-      }
-    });
-
-    async function loadHome() {
-      document.getElementById('homePage').style.display = 'block';
-      const appsSnap = await getDocs(collection(db, 'apps'));
-      let list = '';
-      appsSnap.forEach(doc => {
-        const data = doc.data();
-        list += `<div class="app-card">
-          <h3>${data.name}</h3>
-          <p>${data.description}</p>
-          <button onclick="window.open('${data.downloadUrl}')">Download</button>
-        </div>`;
-      });
-      document.getElementById('appList').innerHTML = list;
-    }
-
-    // Upload App
-    document.getElementById('uploadBtn').addEventListener('click', async () => {
-      const name = document.getElementById('appName').value;
-      const description = document.getElementById('appDesc').value;
-      const banner = document.getElementById('bannerAd').value;
-      const interstitial = document.getElementById('interstitialAd').value;
-      const apkFile = document.getElementById('apkFile').files[0];
-
-      const storageRef = ref(storage, 'apks/' + apkFile.name);
-      await uploadBytes(storageRef, apkFile);
-      const downloadUrl = await getDownloadURL(storageRef);
-
-      await addDoc(collection(db, 'apps'), {
-        name, description, banner, interstitial, downloadUrl
-      });
-
-      alert("App uploaded!");
-      loadHome();
-    });
-
-    onAuthStateChanged(auth, async user => {
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        userData = userDoc.data();
-        document.getElementById('userCorner').innerText = userData.name;
-      }
-    });
-  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku Store</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .app-card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    body { font-family: sans-serif; background: #f1f1f1; margin: 0; padding-bottom: 80px; }
+    header { background: #0f9d58; color: white; padding: 15px; text-align: center; font-size: 24px; }
+    .apps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
+    .app-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .app-card img { width: 100%; height: 120px; object-fit: cover; }
+    .app-card div { padding: 10px; }
+    nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; border-top: 1px solid #ccc; }
+    nav button { flex: 1; padding: 15px; font-size: 16px; border: none; background: none; }
+    #profileSection, #uploadSection { display: none; padding: 15px; background: white; }
+    input, textarea { width: 100%; padding: 8px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button.primary { background: #0f9d58; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; margin-top: 10px; }
   </style>
 </head>
 <body>
 
-<div id="signupScreen" style="display:none">
-  <h2>Create ID</h2>
-  <input id="name" placeholder="Name"><br>
-  <input id="username" placeholder="Username"><br>
-  <input id="email" placeholder="Email"><br>
-  <input id="password" placeholder="Password" type="password"><br>
-  <input id="mobile" placeholder="Mobile Number"><br>
-  <button id="signupBtn">Sign Up</button>
+<header>Sajku App Store</header>
+
+<div id="appList" class="apps"></div>
+
+<div id="profileSection">
+  <h3>Welcome, <span id="userName">Guest</span></h3>
+  <p>Earnings: ₹<span id="earnings">0</span></p>
+  <input type="file" accept="image/*" id="profilePic" />
+  <button class="primary" onclick="logout()">Logout</button>
+  <hr />
+  <button class="primary" onclick="toggleUpload()">Upload App</button>
 </div>
 
-<div id="homePage" style="display:none">
-  <div style="text-align:right"><span id="userCorner"></span></div>
-  <h2>Welcome to Sajku Store</h2>
-  <div id="appList"></div>
-
+<div id="uploadSection">
   <h3>Upload App</h3>
-  <input id="appName" placeholder="App Name"><br>
-  <input id="appDesc" placeholder="Description"><br>
-  <input id="bannerAd" placeholder="Banner Ad Code"><br>
-  <input id="interstitialAd" placeholder="Interstitial Ad Code"><br>
-  <input type="file" id="apkFile"><br>
-  <button id="uploadBtn">Upload App</button>
+  <input type="text" id="appName" placeholder="App Name" />
+  <textarea id="appDesc" placeholder="App Description"></textarea>
+  <input type="text" id="appScreenshot" placeholder="Screenshot URL" />
+  <input type="text" id="admobCode" placeholder="AdMob Banner Code" />
+  <button class="primary" onclick="uploadApp()">Upload</button>
 </div>
+
+<nav>
+  <button onclick="loadApps()">Home</button>
+  <button onclick="alert('Games feature coming soon!')">Games</button>
+  <button onclick="alert('Search feature coming soon!')">Search</button>
+  <button onclick="toggleProfile()">Profile</button>
+</nav>
+
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+    authDomain: "sajku-store.firebaseapp.com",
+    projectId: "sajku-store",
+    storageBucket: "sajku-store.firebasestorage.app",
+    messagingSenderId: "831227140840",
+    appId: "1:831227140840:web:634cc6248ead6ab186075d",
+    measurementId: "G-BDH8FP9R56"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+      if (!docSnap.exists()) {
+        await setDoc(userRef, { name: "New User", earnings: 0 });
+      }
+      const data = (await getDoc(userRef)).data();
+      document.getElementById('userName').innerText = data.name;
+      document.getElementById('earnings').innerText = data.earnings || 0;
+      toggleProfile();
+    } else {
+      let email = prompt("Enter email:");
+      let pass = prompt("Enter password:");
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch {
+        await createUserWithEmailAndPassword(auth, email, pass);
+      }
+    }
+  });
+
+  async function loadApps() {
+    document.getElementById("appList").innerHTML = "";
+    const querySnapshot = await getDocs(collection(db, "apps"));
+    querySnapshot.forEach((doc) => {
+      const app = doc.data();
+      document.getElementById("appList").innerHTML += `
+        <div class="app-card">
+          <img src="${app.screenshot}" />
+          <div>
+            <strong>${app.name}</strong>
+            <p>${app.description.substring(0, 40)}...</p>
+          </div>
+        </div>`;
+    });
+  }
+
+  async function uploadApp() {
+    const name = document.getElementById("appName").value;
+    const description = document.getElementById("appDesc").value;
+    const screenshot = document.getElementById("appScreenshot").value;
+    const admob = document.getElementById("admobCode").value;
+    if (!name || !screenshot) return alert("Please fill all fields");
+
+    await addDoc(collection(db, "apps"), {
+      name, description, screenshot, admob, uploader: currentUser.uid
+    });
+
+    const userRef = doc(db, "users", currentUser.uid);
+    const userDoc = await getDoc(userRef);
+    const currentEarnings = userDoc.data().earnings || 0;
+    await setDoc(userRef, { ...userDoc.data(), earnings: currentEarnings + 10 });
+
+    alert("App uploaded & ₹10 added!");
+    loadApps();
+  }
+
+  function toggleProfile() {
+    document.getElementById("profileSection").style.display = "block";
+    document.getElementById("uploadSection").style.display = "none";
+  }
+
+  function toggleUpload() {
+    document.getElementById("uploadSection").style.display = "block";
+  }
+
+  function logout() {
+    signOut(auth);
+    location.reload();
+  }
+
+  loadApps();
+</script>
 
 </body>
 </html>
+
 
