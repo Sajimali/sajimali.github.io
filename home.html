@@ -23,7 +23,7 @@
     .profile {
       display: flex;
       align-items: center;
-      cursor: pointer; /* updated to allow click */
+      cursor: pointer;
     }
     .profile img {
       width: 40px;
@@ -77,12 +77,11 @@
 <body>
   <header>
     <h2>Sajku1 Store</h2>
-    <div class="profile" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">
-      <img src="https://via.placeholder.com/40" alt="User Photo" />
-      <span>User Name</span>
+    <div class="profile" onclick="window.location.href='dashboard.html'">
+      <img id="userPhoto" src="https://via.placeholder.com/40" alt="User Photo" />
+      <span id="userName">User Name</span>
     </div>
   </header>
-
   <div class="main">
     <h3>Top Apps</h3>
     <div class="app-list">
@@ -103,7 +102,6 @@
       </div>
     </div>
   </div>
-
   <nav>
     <a href="#"><i class="fa fa-home"></i>Home</a>
     <a href="#"><i class="fa fa-gamepad"></i>Games</a>
@@ -115,7 +113,9 @@
   <!-- Firebase Config -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
@@ -125,11 +125,24 @@
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
       measurementId: "G-BDH8FP9R56"
     };
+
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+
+    // Show user info in header
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const name = user.displayName || "User";
+        const photo = user.photoURL || "https://via.placeholder.com/40";
+        document.getElementById("userName").innerText = name;
+        document.getElementById("userPhoto").src = photo;
+      }
+    });
   </script>
 </body>
 </html>
+
 
 
 
