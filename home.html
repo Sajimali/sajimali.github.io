@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sajku1 Store</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -23,14 +23,13 @@
     .profile {
       display: flex;
       align-items: center;
-      pointer-events: none; /* Disable click */
+      cursor: default; /* no pointer effect */
     }
     .profile img {
       width: 40px;
       height: 40px;
       border-radius: 50%;
       margin-right: 10px;
-      object-fit: cover;
     }
     .main {
       padding: 10px;
@@ -76,15 +75,13 @@
   </style>
 </head>
 <body>
-
   <header>
     <h2>Sajku1 Store</h2>
     <div class="profile">
-      <img id="userPhoto" src="https://via.placeholder.com/40" alt="User Photo" />
-      <span id="userName">User Name</span>
+      <img src="https://via.placeholder.com/40" alt="User Photo" />
+      <span>User Name</span>
     </div>
   </header>
-
   <div class="main">
     <h3>Top Apps</h3>
     <div class="app-list">
@@ -105,7 +102,6 @@
       </div>
     </div>
   </div>
-
   <nav>
     <a href="#"><i class="fa fa-home"></i>Home</a>
     <a href="#"><i class="fa fa-gamepad"></i>Games</a>
@@ -114,29 +110,25 @@
     <a href="#"><i class="fa fa-money-bill"></i>Earnings</a>
   </nav>
 
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-  <script>
+  <!-- Firebase Config -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
       projectId: "sajku-store",
-      storageBucket: "sajku-store.appspot.com",
+      storageBucket: "sajku-store.firebasestorage.app",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
       measurementId: "G-BDH8FP9R56"
     };
-    firebase.initializeApp(firebaseConfig);
-
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('userName').textContent = user.displayName || "No Name";
-        document.getElementById('userPhoto').src = user.photoURL || "https://via.placeholder.com/40";
-      }
-    });
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
   </script>
 </body>
 </html>
+
 
 
 
