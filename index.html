@@ -2,101 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sajku Sign Up</title>
-  <style>
-    body {
-      background: #f5f5f5;
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .container {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 300px;
-      box-shadow: 0 0 10px #ccc;
-    }
-    input, button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-    }
-    .error {
-      color: red;
-      font-size: 14px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h3>Create Your ID</h3>
-    <input type="text" id="name" placeholder="Full Name">
-    <input type="text" id="username" placeholder="Username">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <input type="text" id="mobile" placeholder="Mobile Number">
-    <button id="signup">Sign Up</button>
-    <p class="error" id="error"></p>
-  </div>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sajku Store - Real App</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
       projectId: "sajku-store",
-      storageBucket: "sajku-store.firebasestorage.app",
+      storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56",
-      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
+      measurementId: "G-BDH8FP9R56"
     };
 
     const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
     const auth = getAuth();
-    const db = getDatabase();
+    const storage = getStorage(app);
 
-    document.getElementById('signup').addEventListener('click', () => {
+    let userData;
+
+    // Show signup form on app start
+    window.onload = () => {
+      document.getElementById('signupScreen').style.display = 'block';
+    };
+
+    document.getElementById('signupBtn').addEventListener('click', async () => {
       const name = document.getElementById('name').value;
       const username = document.getElementById('username').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const mobile = document.getElementById('mobile').value;
-      const errorBox = document.getElementById('error');
 
-      if (!name || !username || !email || !password || !mobile) {
-        errorBox.textContent = "All fields are required.";
-        return;
-      }
-
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          set(ref(db, 'users/' + user.uid), {
-            name: name,
-            username: username,
-            email: email,
-            mobile: mobile
-          });
-          alert("Account created successfully!");
-        })
-        .catch((error) => {
-          errorBox.textContent = error.message;
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", userCred.user.uid), {
+          name, username, email, mobile, earnings: 0
         });
+        document.getElementById('signupScreen').style.display = 'none';
+        loadHome();
+      } catch (e) {
+        alert("Signup failed: " + e.message);
+      }
+    });
+
+    async function loadHome() {
+      document.getElementById('homePage').style.display = 'block';
+      const appsSnap = await getDocs(collection(db, 'apps'));
+      let list = '';
+      appsSnap.forEach(doc => {
+        const data = doc.data();
+        list += `<div class="app-card">
+          <h3>${data.name}</h3>
+          <p>${data.description}</p>
+          <button onclick="window.open('${data.downloadUrl}')">Download</button>
+        </div>`;
+      });
+      document.getElementById('appList').innerHTML = list;
+    }
+
+    // Upload App
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      const name = document.getElementById('appName').value;
+      const description = document.getElementById('appDesc').value;
+      const banner = document.getElementById('bannerAd').value;
+      const interstitial = document.getElementById('interstitialAd').value;
+      const apkFile = document.getElementById('apkFile').files[0];
+
+      const storageRef = ref(storage, 'apks/' + apkFile.name);
+      await uploadBytes(storageRef, apkFile);
+      const downloadUrl = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, 'apps'), {
+        name, description, banner, interstitial, downloadUrl
+      });
+
+      alert("App uploaded!");
+      loadHome();
+    });
+
+    onAuthStateChanged(auth, async user => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        userData = userDoc.data();
+        document.getElementById('userCorner').innerText = userData.name;
+      }
     });
   </script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .app-card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+<div id="signupScreen" style="display:none">
+  <h2>Create ID</h2>
+  <input id="name" placeholder="Name"><br>
+  <input id="username" placeholder="Username"><br>
+  <input id="email" placeholder="Email"><br>
+  <input id="password" placeholder="Password" type="password"><br>
+  <input id="mobile" placeholder="Mobile Number"><br>
+  <button id="signupBtn">Sign Up</button>
+</div>
+
+<div id="homePage" style="display:none">
+  <div style="text-align:right"><span id="userCorner"></span></div>
+  <h2>Welcome to Sajku Store</h2>
+  <div id="appList"></div>
+
+  <h3>Upload App</h3>
+  <input id="appName" placeholder="App Name"><br>
+  <input id="appDesc" placeholder="Description"><br>
+  <input id="bannerAd" placeholder="Banner Ad Code"><br>
+  <input id="interstitialAd" placeholder="Interstitial Ad Code"><br>
+  <input type="file" id="apkFile"><br>
+  <button id="uploadBtn">Upload App</button>
+</div>
+
 </body>
 </html>
+
