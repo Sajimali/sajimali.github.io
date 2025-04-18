@@ -1,160 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sajku1 SignUp/Login</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up | Sajku1</title>
   <style>
     body {
-      background: linear-gradient(to right, #0072ff, #00c6ff);
       font-family: Arial, sans-serif;
+      background: linear-gradient(#dff9fb, #c7ecee);
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
       margin: 0;
     }
     .container {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      width: 90%;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
       max-width: 400px;
     }
-    h2 {
-      color: #0044cc;
+    .container h2 {
       text-align: center;
+      margin-bottom: 20px;
     }
-    input {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin: 8px 0;
-      border-radius: 8px;
+      margin: 10px 0;
+      border-radius: 5px;
       border: 1px solid #ccc;
     }
     button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      background-color: #0044cc;
+      background-color: #0984e3;
       color: white;
-      font-size: 16px;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-    .toggle {
-      text-align: center;
-      margin-top: 15px;
-    }
-    .toggle a {
-      color: #0044cc;
+      border: none;
       cursor: pointer;
     }
-    #recaptcha-container {
-      margin-top: 10px;
+    button:hover {
+      background-color: #74b9ff;
     }
-    .header-text {
+    .message {
       text-align: center;
       color: green;
-      font-weight: bold;
       margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header-text">Yahi aapka real ID hai, isi se aap pura sab kuchh kar sakte hain</div>
-    <h2 id="formTitle">Sign Up</h2>
-    <input type="text" id="name" placeholder="Full Name">
-    <input type="text" id="username" placeholder="Username">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Strong Password">
-    <input type="text" id="phone" placeholder="Mobile Number">
-    <div id="recaptcha-container"></div>
+    <div class="message">Yahi aapka real ID hai, isi se aap pura sab kuchh kar sakte hain</div>
+    <h2>Sign Up</h2>
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <input type="text" id="phone" placeholder="Mobile Number" required>
+    <button onclick="sendOTP()">Send OTP</button>
     <input type="text" id="otp" placeholder="Enter OTP">
-    <button onclick="requestOTP()">Send OTP</button>
     <button onclick="verifyOTP()">Verify & Sign Up</button>
-    <div class="toggle">
-      Already have an account? <a onclick="switchToLogin()">Login here</a>
-    </div>
+    <p style="text-align:center;">Already have an account? <a href="login.html">Login here</a></p>
   </div>
 
-  <script>
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.firebasestorage.app",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    let recaptchaVerifier;
-
-    window.onload = () => {
-      renderCaptcha();
-    };
-
-    function renderCaptcha() {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-          'size': 'normal',
-          'callback': () => {}
-        });
-        recaptchaVerifier.render();
-      }
-    }
-
-    function requestOTP() {
-      const phone = "+91" + document.getElementById("phone").value;
-      const appVerifier = window.recaptchaVerifier;
-      auth.signInWithPhoneNumber(phone, appVerifier)
-        .then((confirmationResult) => {
-          window.confirmationResult = confirmationResult;
-          alert("OTP sent");
-        })
-        .catch((error) => {
-          alert("OTP Error: " + error.message);
-        });
-    }
-
-    function verifyOTP() {
-      const otpCode = document.getElementById("otp").value;
-      window.confirmationResult.confirm(otpCode).then((result) => {
-        const user = result.user;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        auth.createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            alert("Signup successful");
-          })
-          .catch((error) => {
-            alert("Signup Error: " + error.message);
-          });
-      }).catch((error) => {
-        alert("OTP Verification Error: " + error.message);
-      });
-    }
-
-    function switchToLogin() {
-      // Can implement full toggle if needed
-      alert("Login system will be integrated soon.");
-    }
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
   </script>
 </body>
 </html>
 
-
-
-
-
-
-        
+      
