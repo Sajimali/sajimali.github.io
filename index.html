@@ -1,169 +1,167 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku1 - Sign Up / Login</title>
-  <style>
-    body {
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 400px;
-    }
-    h2 {
-      text-align: center;
-      color: #0072ff;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0072ff;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #005ecb;
-    }
-    .toggle {
-      text-align: center;
-      margin-top: 10px;
-      color: #555;
-    }
-    .toggle span {
-      color: #0072ff;
-      cursor: pointer;
-    }
-    #otp-section {
-      display: none;
-    }
-  </style>
+  <title>Sajku1 - Sign Up</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .signup-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .signup-box h2 {
+      text-align: center;
+      color: #0072ff;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #0072ff;
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #005ecc;
+    }
+    .switch-text {
+      text-align: center;
+      margin-top: 12px;
+    }
+    .switch-text span {
+      color: #0072ff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #otp-box {
+      display: none;
+    }
+  </style>
 </head>
 <body>
+  <div class="signup-box">
+    <h2 id="form-title">Sign Up</h2>
+    <input type="text" id="name" placeholder="Full Name" />
+    <input type="text" id="phone" placeholder="Mobile Number" />
+    <div id="otp-box">
+      <input type="text" id="otp" placeholder="Enter OTP" />
+    </div>
+    <div id="recaptcha-container"></div>
+    <button onclick="submitForm()">Sign Up</button>
+    <div class="switch-text">
+      Already have an account? <span onclick="toggleForm()">Login here</span>
+    </div>
+  </div>
 
-<div class="container">
-  <h2 id="form-title">Sign Up</h2>
-  <input type="text" id="name" placeholder="Name">
-  <input type="text" id="phone" placeholder="Mobile Number">
-  <div id="otp-section">
-    <input type="text" id="otp" placeholder="Enter OTP">
-  </div>
-  <button onclick="submitForm()">Sign Up</button>
-  <div id="recaptcha-container"></div>
-  <div class="toggle">
-    Already have an account? <span onclick="toggleForm()">Login here</span>
-  </div>
-</div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d"
+    };
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-    authDomain: "sajku-store.firebaseapp.com",
-    projectId: "sajku-store",
-    storageBucket: "sajku-store.appspot.com",
-    messagingSenderId: "831227140840",
-    appId: "1:831227140840:web:634cc6248ead6ab186075d",
-    measurementId: "G-BDH8FP9R56"
-  };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    let isLogin = false;
+    let confirmationResult;
 
-  let isLogin = false;
-  let confirmationResult;
+    function setupRecaptcha() {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible'
+        });
+      }
+    }
 
-  function setupCaptcha() {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible'
-      });
-    }
-  }
+    window.toggleForm = () => {
+      isLogin = !isLogin;
+      document.getElementById("form-title").innerText = isLogin ? "Login" : "Sign Up";
+      document.getElementById("name").style.display = isLogin ? "none" : "block";
+      document.querySelector("button").innerText = isLogin ? "Login" : "Sign Up";
+      document.getElementById("otp-box").style.display = "none";
+      confirmationResult = null;
+    };
 
-  window.toggleForm = () => {
-    isLogin = !isLogin;
-    document.getElementById("form-title").textContent = isLogin ? "Login" : "Sign Up";
-    document.querySelector("button").textContent = isLogin ? "Login" : "Sign Up";
-    document.getElementById("name").style.display = isLogin ? "none" : "block";
-    document.getElementById("otp-section").style.display = "none";
-  };
+    window.submitForm = async () => {
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const otp = document.getElementById("otp").value.trim();
 
-  window.submitForm = async () => {
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const otp = document.getElementById("otp").value.trim();
+      if (!phone || (!isLogin && !name)) {
+        alert("Please fill in all required fields.");
+        return;
+      }
 
-    if (!phone || (!isLogin && !name)) {
-      alert("Please fill all fields.");
-      return;
-    }
+      setupRecaptcha();
 
-    setupCaptcha();
+      if (!confirmationResult) {
+        const appVerifier = window.recaptchaVerifier;
+        try {
+          confirmationResult = await signInWithPhoneNumber(auth, "+91" + phone, appVerifier);
+          document.getElementById("otp-box").style.display = "block";
+          alert("OTP sent to +91" + phone);
+        } catch (error) {
+          alert("OTP Error: " + error.message);
+        }
+      } else {
+        try {
+          const result = await confirmationResult.confirm(otp);
+          const user = result.user;
 
-    if (!confirmationResult) {
-      const appVerifier = window.recaptchaVerifier;
-      try {
-        confirmationResult = await signInWithPhoneNumber(auth, "+91" + phone, appVerifier);
-        document.getElementById("otp-section").style.display = "block";
-        alert("OTP sent to +91" + phone);
-      } catch (error) {
-        alert("Error sending OTP: " + error.message);
-      }
-    } else {
-      try {
-        const result = await confirmationResult.confirm(otp);
-        const user = result.user;
+          if (!isLogin) {
+            const userDoc = doc(db, "users", user.uid);
+            await setDoc(userDoc, {
+              uid: user.uid,
+              name: name,
+              phone: "+91" + phone,
+              earnings: 0
+            });
+          }
 
-        if (!isLogin) {
-          const userDoc = doc(db, "users", user.uid);
-          await setDoc(userDoc, {
-            uid: user.uid,
-            name: name,
-            phone: "+91" + phone,
-            earnings: 0
-          });
-          alert("Signup successful!");
-        } else {
-          alert("Login successful!");
-        }
-
-        localStorage.setItem("sajkuUser", user.uid);
-        window.location.href = "home.html";
-
-      } catch (error) {
-        alert("Invalid OTP");
-      }
-    }
-  };
-</script>
+          localStorage.setItem("sajkuUser", user.uid);
+          window.location.href = "home.html";
+        } catch (error) {
+          alert("Invalid OTP. Try again.");
+        }
+      }
+    };
+  </script>
 </body>
 </html>
+
 
 
         
