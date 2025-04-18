@@ -1,1 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sajku1 - Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f9;
+      color: #333;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: #6200ea;
+      color: white;
+    }
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-info img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    main {
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    .box {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .box h3 {
+      margin-bottom: 1rem;
+      color: #6200ea;
+    }
+    button {
+      background-color: #6200ea;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Sajku1 Dashboard</h2>
+    <div class="profile-info">
+      <img id="top-profile-pic" src="default.jpg" alt="Profile" />
+      <span id="top-profile-name">User Name</span>
+    </div>
+  </header>
 
+  <main>
+    <div class="box">
+      <h3>Profile Info</h3>
+      <input type="file" id="profilePicInput" />
+      <input type="text" id="userNameInput" placeholder="Enter your name" />
+      <button onclick="updateProfile()">Update Profile</button>
+    </div>
+
+    <div class="box">
+      <h3>Earnings</h3>
+      <p>Total: ₹0</p>
+      <button onclick="alert('Upload: ₹0\nDownload: ₹0')">View Details</button>
+    </div>
+
+    <div class="box">
+      <h3>Upload App</h3>
+      <input type="text" placeholder="App Name" />
+      <input type="text" placeholder="Username" />
+      <textarea placeholder="Comment"></textarea>
+      <input type="file" />
+      <input type="file" />
+      <input type="text" placeholder="AdMob Code (optional)" />
+      <button>Upload</button>
+    </div>
+
+    <div class="box">
+      <h3>Withdraw</h3>
+      <input type="text" placeholder="Account Holder Name" />
+      <input type="text" placeholder="Bank Name" />
+      <input type="text" placeholder="Account Number" />
+      <input type="text" placeholder="IFSC Code" />
+      <input type="number" placeholder="Enter Amount (Min ₹10)" min="10" />
+      <button>Withdraw</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.firebasestorage.app",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+
+  <script>
+    function updateProfile() {
+      const newPic = document.getElementById('profilePicInput').files[0];
+      const newName = document.getElementById('userNameInput').value;
+      if (newPic) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById('top-profile-pic').src = e.target.result;
+        };
+        reader.readAsDataURL(newPic);
+      }
+      if (newName) {
+        document.getElementById('top-profile-name').innerText = newName;
+      }
+    }
+  </script>
+</body>
+</html>
