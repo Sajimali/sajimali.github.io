@@ -1,136 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku1 - Sign Up / Login</title>
-  <style>
-    body {
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sajku1 - Play Store Like</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, set, get, update, push, child } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56",
+      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    // OTP SYSTEM
+    window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+      'size': 'invisible',
+      'callback': (response) => {}
+    }, auth);
+
+    // SAVE PROFILE
+    window.saveUserData = function() {
+      const name = document.getElementById('name').value;
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const phone = document.getElementById('phone').value;
+      const photoURL = document.getElementById('photo').value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(userCredential => {
+          const userId = userCredential.user.uid;
+          set(ref(db, 'users/' + userId), {
+            name,
+            username,
+            email,
+            phone,
+            photoURL,
+            earnings: { uploader: 0, downloader: 0, system: 0 }
+          }).then(() => {
+            alert("Signup successful");
+            window.location.href = 'home.html';
+          });
+        })
+        .catch(error => {
+          alert(error.message);
+        });
     }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 400px;
+
+    // OTP SEND
+    window.sendOTP = function() {
+      const phoneNumber = document.getElementById('phone').value;
+      const appVerifier = window.recaptchaVerifier;
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        .then(confirmationResult => {
+          window.confirmationResult = confirmationResult;
+          alert("OTP sent!");
+        }).catch(error => {
+          alert(error.message);
+        });
     }
-    h2 {
-      text-align: center;
-      color: #0072ff;
+
+    window.verifyOTP = function() {
+      const code = document.getElementById('otp').value;
+      confirmationResult.confirm(code).then(result => {
+        alert("OTP verified");
+      }).catch(error => {
+        alert("Invalid OTP");
+      });
     }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+
+    // APP UPLOAD
+    window.uploadApp = function() {
+      const uid = auth.currentUser.uid;
+      const appName = document.getElementById('appName').value;
+      const appDesc = document.getElementById('description').value;
+      const screenshot = document.getElementById('screenshot').value;
+      const admobCode = document.getElementById('admobCode').value;
+      const defaultCodes = ["code1", "code2", "code3", "code4", "code5"];
+      const finalCode = admobCode ? admobCode : defaultCodes[Math.floor(Math.random()*defaultCodes.length)];
+
+      push(ref(db, 'apps/'), {
+        uploaderId: uid,
+        appName,
+        description: appDesc,
+        screenshot,
+        admobCode: finalCode,
+        downloads: 0
+      }).then(() => {
+        alert("App uploaded successfully. It will go live in 1 hour.");
+      });
     }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0072ff;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+
+    // WITHDRAWAL
+    window.withdraw = function() {
+      const uid = auth.currentUser.uid;
+      const amount = parseInt(document.getElementById('amount').value);
+      const bankDetails = document.getElementById('bank').value;
+
+      get(ref(db, 'users/' + uid)).then(snapshot => {
+        const data = snapshot.val();
+        const total = data.earnings.uploader + data.earnings.downloader;
+        if (amount < 10 || amount > total) {
+          alert("Invalid withdrawal amount");
+          return;
+        }
+        update(ref(db, 'users/' + uid + '/earnings'), {
+          uploader: 0,
+          downloader: 0
+        });
+        alert("Withdrawal requested");
+      });
     }
-    button:hover {
-      background: #005ecb;
+
+    // DOWNLOAD COUNT AND EARNINGS
+    window.downloadApp = function(appId, uploaderId) {
+      const uid = auth.currentUser.uid;
+      const appRef = ref(db, 'apps/' + appId);
+
+      get(appRef).then(snapshot => {
+        const app = snapshot.val();
+        update(appRef, {
+          downloads: app.downloads + 1
+        });
+
+        const uploaderEarn = 0.65;
+        const downloaderEarn = 0.15;
+        const systemEarn = 0.20;
+
+        update(ref(db, 'users/' + uploaderId + '/earnings'), {
+          uploader: app.earnings?.uploader + uploaderEarn || uploaderEarn
+        });
+        update(ref(db, 'users/' + uid + '/earnings'), {
+          downloader: app.earnings?.downloader + downloaderEarn || downloaderEarn
+        });
+        update(ref(db, 'system/earnings'), {
+          total: app.earnings?.system + systemEarn || systemEarn
+        });
+        alert("Downloaded successfully!");
+      });
     }
-    .toggle {
-      text-align: center;
-      margin-top: 10px;
-      color: #555;
-    }
-    .toggle span {
-      color: #0072ff;
-      cursor: pointer;
-    }
-  </style>
+  </script>
 </head>
 <body>
-
-<div class="container">
-  <h2 id="form-title">Sign Up</h2>
-  <input type="text" id="name" placeholder="Name">
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="submitForm()">Sign Up</button>
-  <div class="toggle">
-    Already have an account? <span onclick="toggleForm()">Login here</span>
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-    authDomain: "sajku-store.firebaseapp.com",
-    projectId: "sajku-store",
-    storageBucket: "sajku-store.appspot.com",
-    messagingSenderId: "831227140840",
-    appId: "1:831227140840:web:634cc6248ead6ab186075d",
-    measurementId: "G-BDH8FP9R56"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let isLogin = false;
-
-  window.toggleForm = () => {
-    isLogin = !isLogin;
-    document.getElementById("form-title").textContent = isLogin ? "Login" : "Sign Up";
-    document.querySelector("button").textContent = isLogin ? "Login" : "Sign Up";
-    document.getElementById("name").style.display = isLogin ? "none" : "block";
-  };
-
-  window.submitForm = async () => {
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!email || !password || (!isLogin && !name)) {
-      alert("Please fill all fields.");
-      return;
-    }
-
-    try {
-      if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Login successful!");
-        // Redirect to home/dashboard
-        window.location.href = "home.html";
-      } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        await setDoc(doc(db, "users", user.uid), {
-          name: name,
-          email: email,
-          uid: user.uid,
-          earnings: 0
-        });
-        alert("Signup successful!");
-        window.location.href = "home.html";
-      }
-    } catch (error) {
-      alert("Error: " + error.message);
-    }
-  };
-</script>
+  <!-- HTML ID SYSTEM, HOME, DASHBOARD etc will go here next -->
 </body>
 </html>
+
 
