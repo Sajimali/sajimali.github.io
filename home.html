@@ -1,1 +1,165 @@
-      
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku1 Store</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+    }
+    header {
+      background-color: #6200ea;
+      color: white;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .main {
+      padding: 10px;
+    }
+    .category-tabs {
+      display: flex;
+      justify-content: space-around;
+      background: #f0f0f0;
+      padding: 10px 0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .category-tabs button {
+      background: none;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      color: #6200ea;
+    }
+    .app-list {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .app-card {
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      min-width: 150px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .app-card img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .install-btn {
+      background: #6200ea;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+    .download-count {
+      font-size: 12px;
+      color: gray;
+    }
+    nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: white;
+      border-top: 1px solid #ddd;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    nav a {
+      text-align: center;
+      color: #6200ea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    nav a i {
+      font-size: 18px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Sajku1 Store</h2>
+    <div class="profile" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">
+      <img src="https://via.placeholder.com/40" alt="User Photo" />
+      <span>User Name</span>
+    </div>
+  </header>
+  <div class="main">
+    <div class="category-tabs">
+      <button onclick="loadCategory('top')">Top Apps</button>
+      <button onclick="loadCategory('games')">Games</button>
+      <button onclick="loadCategory('tools')">Tools</button>
+      <button onclick="loadCategory('editors')">Editor's Choice</button>
+    </div>
+    <div id="app-container" class="app-list"></div>
+  </div>
+
+  <nav>
+    <a href="#"><i class="fa fa-home"></i>Home</a>
+    <a href="#"><i class="fa fa-gamepad"></i>Games</a>
+    <a href="#"><i class="fa fa-search"></i>Search</a>
+    <a href="#"><i class="fa fa-gift"></i>Offers</a>
+    <a href="#"><i class="fa fa-money-bill"></i>Earnings</a>
+  </nav>
+
+  <!-- Firebase Config & Category Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.firebasestorage.app",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadCategory(category) {
+      const appContainer = document.getElementById('app-container');
+      appContainer.innerHTML = '';
+      const querySnapshot = await getDocs(collection(db, category));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <img src="${data.image}" alt="App" />
+          <h4>${data.name}</h4>
+          <p class="download-count">${data.downloads} downloads</p>
+          <button class="install-btn" onclick="window.location.href='${data.link}'">Install</button>
+        `;
+        appContainer.appendChild(card);
+      });
+   
+::contentReference[oaicite:8]{index=8}      
