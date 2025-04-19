@@ -1,163 +1,55 @@
+<!-- dashboard.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku1 - Dashboard</title>
+  <title>Sajku1 Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <style>
-    body { font-family: sans-serif; background: #f8f9fc; margin: 0; padding: 0; }
-    header {
-      background: #1976d2; color: white;
-      padding: 16px; display: flex; justify-content: space-between; align-items: center;
-    }
-    .profile-box {
-      margin: 20px auto;
-      background: white; padding: 20px;
-      border-radius: 12px; max-width: 500px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .profile-box img {
-      width: 80px; height: 80px; border-radius: 50%;
-      object-fit: cover; display: block; margin: 0 auto 10px;
-    }
-    .profile-box input, .profile-box button {
-      display: block; width: 100%; padding: 10px; margin: 8px 0;
-    }
-    .section { max-width: 500px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 0 8px rgba(0,0,0,0.08); }
-    .section h3 { margin-top: 0; }
-    button { background: #1976d2; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    body { font-family: sans-serif; padding: 20px; background: #fffbe6; }
+    .card { background: white; padding: 20px; margin: 15px 0; border-radius: 10px; box-shadow: 0 2px 5px #ccc; }
   </style>
 </head>
 <body>
+  <h2>Welcome to Dashboard</h2>
+  <div class="card" id="userDetails">Loading user info...</div>
+  <div class="card">
+    <h3>Upload Your App</h3>
+    <!-- Upload form code will go here -->
+  </div>
+  <div class="card">
+    <h3>Earnings / Withdraw</h3>
+    <!-- Withdraw form code here -->
+  </div>
 
-<header>
-  <h2>Dashboard</h2>
-  <button onclick="window.location.href='home.html'">Go to Homepage</button>
-</header>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-<div class="profile-box">
-  <img id="profileImg" src="https://via.placeholder.com/80" />
-  <input type="text" id="nameInput" placeholder="Your Name" />
-  <input type="file" id="photoInput" accept="image/*" />
-  <button onclick="saveProfile()">Save Profile</button>
-</div>
+    const uid = localStorage.getItem("sajkuUser");
+    if (!uid) window.location.href = "index.html";
 
-<div class="section">
-  <h3>Earnings</h3>
-  <p>Uploads: ₹<span id="uploadEarnings">0</span></p>
-  <p>Downloads: ₹<span id="downloadEarnings">0</span></p>
-</div>
-
-<div class="section">
-  <h3>Withdraw</h3>
-  <input type="text" id="bankDetails" placeholder="Your Bank Account Details" />
-  <button onclick="withdraw()">Withdraw</button>
-  <p id="withdrawMsg"></p>
-</div>
-
-<div class="section">
-  <h3>Upload App</h3>
-  <input type="text" id="appName" placeholder="App Name" />
-  <input type="text" id="appUsername" placeholder="Username (for display)" />
-  <textarea id="comment" placeholder="Comment or Description"></textarea>
-  <input type="file" id="screenshot" accept="image/*" />
-  <input type="file" id="appFile" />
-  <input type="text" id="admobCode" placeholder="AdMob Code (Optional)" />
-  <button onclick="uploadApp()">Upload</button>
-  <p id="uploadMsg"></p>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-    authDomain: "sajku-store.firebaseapp.com",
-    projectId: "sajku-store",
-    storageBucket: "sajku-store.appspot.com",
-    messagingSenderId: "831227140840",
-    appId: "1:831227140840:web:634cc6248ead6ab186075d",
-    measurementId: "G-BDH8FP9R56"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const storage = firebase.storage();
-
-  const uid = localStorage.getItem("sajkuUser");
-  if (!uid) window.location.href = "signup.html";
-
-  const userRef = db.ref("users/" + uid);
-  userRef.once("value").then(snap => {
-    const data = snap.val();
-    document.getElementById("nameInput").value = data.name || "";
-    document.getElementById("profileImg").src = data.photoURL || "https://via.placeholder.com/80";
-    document.getElementById("uploadEarnings").textContent = data.uploadEarnings || 0;
-    document.getElementById("downloadEarnings").textContent = data.downloadEarnings || 0;
-  });
-
-  function saveProfile() {
-    const name = document.getElementById("nameInput").value;
-    const file = document.getElementById("photoInput").files[0];
-    if (file) {
-      const ref = storage.ref("users/" + uid + "/profile.jpg");
-      ref.put(file).then(snapshot => snapshot.ref.getDownloadURL()).then(url => {
-        userRef.update({ name, photoURL: url });
-        document.getElementById("profileImg").src = url;
-      });
-    } else {
-      userRef.update({ name });
-    }
-  }
-
-  function withdraw() {
-    const bank = document.getElementById("bankDetails").value;
-    userRef.once("value").then(snap => {
-      const total = (snap.val().uploadEarnings || 0) + (snap.val().downloadEarnings || 0);
-      if (total >= 10) {
-        db.ref("withdrawals/" + uid).push({ bank, amount: total, time: Date.now() });
-        userRef.update({ uploadEarnings: 0, downloadEarnings: 0 });
-        document.getElementById("withdrawMsg").textContent = "Withdrawal requested.";
-      } else {
-        document.getElementById("withdrawMsg").textContent = "Minimum ₹10 required.";
-      }
+    firebase.database().ref("users/" + uid).once("value").then((snap) => {
+      const data = snap.val();
+      document.getElementById("userDetails").innerHTML = `
+        <strong>Name:</strong> ${data.name}<br>
+        <strong>Username:</strong> ${data.username}<br>
+        <strong>Email:</strong> ${data.email}<br>
+        <strong>Phone:</strong> ${data.phone}<br>
+        <strong>Earnings:</strong> ₹${data.earnings || 0}
+      `;
     });
-  }
-
-  function uploadApp() {
-    const name = document.getElementById("appName").value;
-    const username = document.getElementById("appUsername").value;
-    const comment = document.getElementById("comment").value;
-    const screenshot = document.getElementById("screenshot").files[0];
-    const appFile = document.getElementById("appFile").files[0];
-    let admobCode = document.getElementById("admobCode").value;
-
-    if (!name || !screenshot || !appFile) {
-      document.getElementById("uploadMsg").textContent = "All fields required.";
-      return;
-    }
-
-    if (!admobCode) {
-      const defaults = ["ca-app-pub-1", "ca-app-pub-2", "ca-app-pub-3", "ca-app-pub-4", "ca-app-pub-5"];
-      admobCode = defaults[Math.floor(Math.random() * defaults.length)];
-    }
-
-    const appKey = db.ref().child("apps").push().key;
-
-    Promise.all([
-      storage.ref("apps/" + appKey + "/screenshot.jpg").put(screenshot).then(s => s.ref.getDownloadURL()),
-      storage.ref("apps/" + appKey + "/appfile.apk").put(appFile).then(s => s.ref.getDownloadURL())
-    ]).then(([screenshotURL, appURL]) => {
-      db.ref("apps/" + appKey).set({
-        name, username, comment, screenshot: screenshotURL, downloadURL: appURL,
-        admob: admobCode, uploader: uid, downloads: 0
-      });
-      document.getElementById("uploadMsg").textContent = "Uploaded successfully!";
-    });
-  }
-</script>
+  </script>
 </body>
 </html>
+
 
 
   
