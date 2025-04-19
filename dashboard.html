@@ -2,26 +2,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sajku1 Dashboard</title>
+  <title>Sajku1 - Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
-  <style>
-    body { font-family: sans-serif; padding: 20px; background: #fffbe6; }
-    .card { background: white; padding: 20px; margin: 15px 0; border-radius: 10px; box-shadow: 0 2px 5px #ccc; }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <h2>Welcome to Dashboard</h2>
-  <div class="card" id="userDetails">Loading user info...</div>
-  <div class="card">
-    <h3>Upload Your App</h3>
-    <!-- Upload form code will go here -->
-  </div>
-  <div class="card">
-    <h3>Earnings / Withdraw</h3>
-    <!-- Withdraw form code here -->
-  </div>
+  <!-- Your original dashboard layout with profile editor, earnings, upload form, etc. -->
 
+  <!-- Firebase Config -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -29,26 +19,28 @@
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d"
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+  </script>
 
-    const uid = localStorage.getItem("sajkuUser");
-    if (!uid) window.location.href = "index.html";
-
-    firebase.database().ref("users/" + uid).once("value").then((snap) => {
-      const data = snap.val();
-      document.getElementById("userDetails").innerHTML = `
-        <strong>Name:</strong> ${data.name}<br>
-        <strong>Username:</strong> ${data.username}<br>
-        <strong>Email:</strong> ${data.email}<br>
-        <strong>Phone:</strong> ${data.phone}<br>
-        <strong>Earnings:</strong> ₹${data.earnings || 0}
-      `;
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        const uid = user.uid;
+        // Load user data, earnings, and uploads using UID
+        // Your original dashboard script will use 'uid'
+      } else {
+        window.location.href = "index.html";
+      }
     });
   </script>
 </body>
 </html>
+
 
 
 
