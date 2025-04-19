@@ -1,119 +1,46 @@
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sajku1 - Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+</head>
+<body>
+  <!-- Your original dashboard layout with profile editor, earnings, upload form, etc. -->
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-    authDomain: "sajku-store.firebaseapp.com",
-    projectId: "sajku-store",
-    storageBucket: "sajku-store.appspot.com",
-    messagingSenderId: "831227140840",
-    appId: "1:831227140840:web:634cc6248ead6ab186075d",
-    measurementId: "G-BDH8FP9R56"
-  };
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+  </script>
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  const storage = firebase.storage();
-
-  const defaultAdmobCodes = [
-    "ca-app-pub-1111111111111111/1111111111",
-    "ca-app-pub-2222222222222222/2222222222",
-    "ca-app-pub-3333333333333333/3333333333",
-    "ca-app-pub-4444444444444444/4444444444",
-    "ca-app-pub-5555555555555555/5555555555"
-  ];
-
-  // Load user profile and dashboard
-  auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      const uid = user.uid;
-      const userDoc = await db.collection("users").doc(uid).get();
-      const userData = userDoc.data();
-
-      if (userData) {
-        document.getElementById("profileName").innerText = userData.name || "No Name";
-        document.getElementById("profilePhoto").src = userData.photoURL || "default.jpg";
-        document.getElementById("dashboardUsername").value = userData.username || "";
-        document.getElementById("uploadEarnings").innerText = userData.uploadEarnings || 0;
-        document.getElementById("downloadEarnings").innerText = userData.downloadEarnings || 0;
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        const uid = user.uid;
+        // Load user data, earnings, and uploads using UID
+        // Your original dashboard script will use 'uid'
+      } else {
+        window.location.href = "index.html";
       }
-    } else {
-      window.location.href = "index.html"; // Redirect to login if not logged in
-    }
-  });
-
-  // Upload App Function
-  async function uploadApp() {
-    const appName = document.getElementById("appName").value;
-    const comment = document.getElementById("comment").value;
-    const username = document.getElementById("dashboardUsername").value;
-    let admobCode = document.getElementById("admobCode").value.trim();
-    if (!admobCode) {
-      admobCode = defaultAdmobCodes[Math.floor(Math.random() * defaultAdmobCodes.length)];
-    }
-
-    const screenshotFile = document.getElementById("screenshotUpload").files[0];
-    const apkFile = document.getElementById("appFileUpload").files[0];
-
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const uid = user.uid;
-    const screenshotRef = storage.ref(`apps/${uid}/${Date.now()}_screenshot.png`);
-    const appFileRef = storage.ref(`apps/${uid}/${Date.now()}_app.apk`);
-
-    await screenshotRef.put(screenshotFile);
-    await appFileRef.put(apkFile);
-
-    const screenshotURL = await screenshotRef.getDownloadURL();
-    const appURL = await appFileRef.getDownloadURL();
-
-    await db.collection("apps").add({
-      uploaderId: uid,
-      appName,
-      comment,
-      username,
-      admobCode,
-      screenshotURL,
-      appURL,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
+  </script>
+</body>
+</html>
 
-    alert("App uploaded successfully! It will go live in 1 hour.");
-  }
-
-  // Withdrawal Request Function
-  async function requestWithdrawal() {
-    const amount = parseFloat(document.getElementById("withdrawAmount").value);
-    if (amount < 10) {
-      alert("Minimum withdrawal amount is ₹10");
-      return;
-    }
-
-    const account = document.getElementById("bankAccount").value;
-    const ifsc = document.getElementById("ifscCode").value;
-    const name = document.getElementById("accountHolderName").value;
-
-    const user = auth.currentUser;
-    if (!user) return;
-
-    await db.collection("withdrawals").add({
-      uid: user.uid,
-      amount,
-      account,
-      ifsc,
-      name,
-      requestedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    alert("Withdrawal request submitted!");
-  }
-                         </script>
 
 
 
