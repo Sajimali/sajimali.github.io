@@ -3,163 +3,145 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sajku1 Store</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>Sajku1 - Home</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+      font-family: sans-serif;
+      background: #f0f0f5;
     }
     header {
-      background-color: #6200ea;
+      background: #1976d2;
+      padding: 10px 20px;
       color: white;
-      padding: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .profile {
+    .user-info {
       display: flex;
       align-items: center;
+      gap: 10px;
       cursor: pointer;
     }
-    .profile img {
-      width: 40px;
-      height: 40px;
+    .user-info img {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      margin-right: 10px;
-    }
-    .main {
-      padding: 10px;
-    }
-    .category-tabs {
-      display: flex;
-      justify-content: space-around;
-      background: #f0f0f0;
-      padding: 10px 0;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-    .category-tabs button {
-      background: none;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      color: #6200ea;
+      object-fit: cover;
     }
     .app-list {
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-      padding: 10px 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      padding: 20px;
     }
     .app-card {
       background: white;
-      border-radius: 10px;
       padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      min-width: 150px;
-      flex-shrink: 0;
-      position: relative;
+      border-radius: 12px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      text-align: center;
     }
     .app-card img {
       width: 100%;
-      border-radius: 10px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
     }
-    .install-btn {
-      background: #6200ea;
+    .app-card button {
+      margin-top: 8px;
+      padding: 8px;
+      background: #1976d2;
       color: white;
       border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      margin-top: 5px;
+      border-radius: 8px;
       cursor: pointer;
     }
     .download-count {
-      font-size: 12px;
-      color: gray;
-    }
-    nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background-color: white;
-      border-top: 1px solid #ddd;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-    }
-    nav a {
-      text-align: center;
-      color: #6200ea;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    nav a i {
-      font-size: 18px;
-      display: block;
+      margin-top: 5px;
+      font-size: 13px;
+      color: #555;
     }
   </style>
 </head>
 <body>
   <header>
-    <h2>Sajku1 Store</h2>
-    <div class="profile" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">
-      <img src="https://via.placeholder.com/40" alt="User Photo" />
-      <span>User Name</span>
+    <h2>Sajku1</h2>
+    <div class="user-info" onclick="goToDashboard()">
+      <span id="username">Loading...</span>
+      <img id="userphoto" src="https://via.placeholder.com/36" alt="User Photo" />
     </div>
   </header>
-  <div class="main">
-    <div class="category-tabs">
-      <button onclick="loadCategory('top')">Top Apps</button>
-      <button onclick="loadCategory('games')">Games</button>
-      <button onclick="loadCategory('tools')">Tools</button>
-      <button onclick="loadCategory('editors')">Editor's Choice</button>
-    </div>
-    <div id="app-container" class="app-list"></div>
+
+  <div class="app-list" id="appList">
+    <!-- Apps will load here -->
   </div>
 
-  <nav>
-    <a href="#"><i class="fa fa-home"></i>Home</a>
-    <a href="#"><i class="fa fa-gamepad"></i>Games</a>
-    <a href="#"><i class="fa fa-search"></i>Search</a>
-    <a href="#"><i class="fa fa-gift"></i>Offers</a>
-    <a href="#"><i class="fa fa-money-bill"></i>Earnings</a>
-  </nav>
-
-  <!-- Firebase Config & Category Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
       projectId: "sajku-store",
-      storageBucket: "sajku-store.firebasestorage.app",
+      storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
       measurementId: "G-BDH8FP9R56"
     };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    async function loadCategory(category) {
-      const appContainer = document.getElementById('app-container');
-      appContainer.innerHTML = '';
-      const querySnapshot = await getDocs(collection(db, category));
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const card = document.createElement('div');
-        card.className = 'app-card';
-        card.innerHTML = `
-          <img src="${data.image}" alt="App" />
-          <h4>${data.name}</h4>
-          <p class="download-count">${data.downloads} downloads</p>
-          <button class="install-btn" onclick="window.location.href='${data.link}'">Install</button>
+    const uid = localStorage.getItem("sajkuUser");
+    if (!uid) {
+      window.location.href = "signup.html";
+    }
+
+    // Load user data
+    firebase.database().ref("users/" + uid).once("value", (snap) => {
+      const data = snap.val();
+      document.getElementById("username").textContent = data.name || "User";
+      if (data.photoURL) {
+        document.getElementById("userphoto").src = data.photoURL;
+      }
+    });
+
+    // Load apps
+    firebase.database().ref("apps").on("value", (snapshot) => {
+      const appList = document.getElementById("appList");
+      appList.innerHTML = "";
+      snapshot.forEach((child) => {
+        const app = child.val();
+        const appCard = document.createElement("div");
+        appCard.className = "app-card";
+        appCard.innerHTML = `
+          <img src="${app.screenshot || 'https://via.placeholder.com/150'}" />
+          <h4>${app.name}</h4>
+          <p>${app.username}</p>
+          <button onclick="downloadApp('${child.key}')">Download</button>
+          <div class="download-count">Downloads: ${app.downloads || 0}</div>
         `;
-        appContainer.appendChild(card);
+        appList.appendChild(appCard);
       });
-   
-::contentReference[oaicite:8]{index=8}      
+    });
+
+    function downloadApp(appId) {
+      const ref = firebase.database().ref("apps/" + appId);
+      ref.once("value", (snap) => {
+        const app = snap.val();
+        const newDownloads = (app.downloads || 0) + 1;
+        ref.update({ downloads: newDownloads });
+
+        // You can add earnings logic here if needed
+        window.open(app.downloadURL || "#", "_blank");
+      });
+    }
+
+    function goToDashboard() {
+      window.location.href = "dashboard.html";
+    }
+  </script>
+</body>
+</html>
+
