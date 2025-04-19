@@ -2,22 +2,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sajku1 - App Store</title>
+  <title>Sajku1 - Home</title>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
-  <style>
-    body { font-family: sans-serif; background: #f0f0f0; margin: 0; }
-    .topbar { background: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px #ccc; }
-    .profile { cursor: pointer; background: #eee; padding: 10px; border-radius: 50px; }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="topbar">
-    <h2>Sajku1</h2>
-    <div class="profile" onclick="goToDashboard()" id="profileName">Loading...</div>
-  </div>
-  <!-- Add banner, categories, apps etc. here -->
+  <!-- Your powerful homepage UI remains unchanged -->
 
+  <!-- Profile circular button -->
+  <div id="userProfile" onclick="goToDashboard()">Loading...</div>
+
+  <!-- Firebase Config -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -25,15 +21,27 @@
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d"
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 
-    const uid = localStorage.getItem("sajkuUser");
-    if (!uid) window.location.href = "index.html";
-
-    firebase.database().ref("users/" + uid).once("value").then((snap) => {
-      document.getElementById("profileName").innerText = snap.val().name;
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        // Show profile data
+        db.collection("users").doc(user.uid).get().then(doc => {
+          const data = doc.data();
+          document.getElementById("userProfile").innerHTML = `
+            <img src="${data.photoURL}" style="width:40px;height:40px;border-radius:50%;"> 
+            ${data.name}
+          `;
+        });
+      } else {
+        window.location.href = "index.html";
+      }
     });
 
     function goToDashboard() {
@@ -42,6 +50,7 @@
   </script>
 </body>
 </html>
+
 
 
 
