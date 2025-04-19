@@ -1,4 +1,3 @@
-<!-- home.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,11 +8,8 @@
 </head>
 <body>
   <!-- Your powerful homepage UI remains unchanged -->
-
-  <!-- Profile circular button -->
   <div id="userProfile" onclick="goToDashboard()">Loading...</div>
 
-  <!-- Firebase Config -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -31,13 +27,16 @@
   <script>
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        // Show profile data
         db.collection("users").doc(user.uid).get().then(doc => {
           const data = doc.data();
-          document.getElementById("userProfile").innerHTML = `
-            <img src="${data.photoURL}" style="width:40px;height:40px;border-radius:50%;"> 
-            ${data.name}
-          `;
+          if (data && data.name && data.photoURL) {
+            document.getElementById("userProfile").innerHTML = `
+              <img src="${data.photoURL}" style="width:40px;height:40px;border-radius:50%;"> 
+              ${data.name}
+            `;
+          } else {
+            document.getElementById("userProfile").innerText = "Profile Incomplete";
+          }
         });
       } else {
         window.location.href = "index.html";
@@ -50,6 +49,7 @@
   </script>
 </body>
 </html>
+
 
 
 
