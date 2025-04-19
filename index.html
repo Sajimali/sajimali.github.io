@@ -1,41 +1,61 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sajku1 - Login</title>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <title>Sajku1 - Login</title>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Your original design: login/signup form yahin rahega -->
+  <!-- Your original design: login/signup form yahin rahega -->
 
-  <!-- Firebase Config -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-      authDomain: "sajku-store.firebaseapp.com",
-      projectId: "sajku-store",
-      storageBucket: "sajku-store.appspot.com",
-      messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 
-  <script>
-    // Save ID and redirect to home
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        localStorage.setItem("userID", user.uid);
-        window.location.href = "home.html";
-      }
-    });
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        localStorage.setItem("userID", user.uid);
+        window.location.href = "home.html";
+      }
+    });
 
-    // Login/signup form logic aapka original code ke hisab se rahega
-  </script>
+    // Signup logic (dummy example, replace with your real form inputs)
+    function signUp() {
+      const email = "test@example.com";
+      const password = "password123";
+      const name = "User Name";
+      const photoURL = "https://example.com/photo.jpg";
+
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          // Save extra data in Firestore
+          return db.collection("users").doc(user.uid).set({
+            name: name,
+            photoURL: photoURL
+          });
+        })
+        .then(() => {
+          window.location.href = "home.html";
+        })
+        .catch(error => {
+          console.error("Signup error:", error);
+        });
+    }
+  </script>
 </body>
 </html>
 
-
-      
