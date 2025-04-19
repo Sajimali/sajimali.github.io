@@ -1,77 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign Up | Sajku1</title>
+  <title>Signup/Login - Sajku1</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(#dff9fb, #c7ecee);
+      background: linear-gradient(#e8f0ff, #ffffff);
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       height: 100vh;
       margin: 0;
     }
     .container {
-      background-color: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      width: 100%;
+      width: 90%;
       max-width: 400px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+      padding: 20px;
     }
-    .container h2 {
+    h2 {
       text-align: center;
-      margin-bottom: 20px;
+      color: #222;
     }
     input, button {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 16px;
     }
     button {
-      background-color: #0984e3;
+      background-color: #007bff;
       color: white;
       border: none;
-      cursor: pointer;
     }
-    button:hover {
-      background-color: #74b9ff;
-    }
-    .message {
+    .toggle {
+      color: #007bff;
       text-align: center;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #real-id-msg {
       color: green;
-      margin-bottom: 10px;
+      text-align: center;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="message">Yahi aapka real ID hai, isi se aap pura sab kuchh kar sakte hain</div>
-    <h2>Sign Up</h2>
-    <input type="text" id="name" placeholder="Full Name" required />
-    <input type="text" id="username" placeholder="Username" required />
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <input type="text" id="phone" placeholder="Mobile Number (e.g. +91XXXXXXXXXX)" required />
-    
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Send OTP</button>
-    
-    <input type="text" id="otp" placeholder="Enter OTP" />
-    <button onclick="verifyOTP()">Verify & Sign Up</button>
-
-    <p style="text-align:center;">Already have an account? <a href="login.html">Login here</a></p>
+    <div id="real-id-msg">Yahi aapka real ID hai, isi se aap pura sab kuchh kar sakte hain</div>
+    <h2 id="formTitle">Sign Up</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="text" id="username" placeholder="Username">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <input type="text" id="mobile" placeholder="Mobile Number">
+    <input type="text" id="photoURL" placeholder="Profile Photo URL">
+    <button onclick="handleSignup()" id="signupBtn">Sign Up</button>
+    <button onclick="handleLogin()" id="loginBtn" style="display:none;">Login</button>
+    <div class="toggle" onclick="toggleForm()">Already have an account? Login here</div>
   </div>
 
-  <!-- Firebase App (modular) -->
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -88,69 +85,62 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let confirmationResult;
+    function toggleForm() {
+      const isSignup = document.getElementById("signupBtn").style.display !== "none";
+      document.getElementById("signupBtn").style.display = isSignup ? "none" : "block";
+      document.getElementById("loginBtn").style.display = isSignup ? "block" : "none";
+      document.getElementById("formTitle").textContent = isSignup ? "Login" : "Sign Up";
+    }
 
-    window.sendOTP = () => {
-      const phoneNumber = document.getElementById("phone").value;
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible',
-          callback: (response) => {
-            // reCAPTCHA solved
-          }
+    async function handleSignup() {
+      const name = document.getElementById("name").value;
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const mobile = document.getElementById("mobile").value;
+      const photoURL = document.getElementById("photoURL").value;
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await updateProfile(user, { displayName: name, photoURL });
+
+        await setDoc(doc(db, "users", user.uid), {
+          name,
+          username,
+          email,
+          mobile,
+          photoURL,
+          uid: user.uid,
+          createdAt: new Date().toISOString()
         });
+
+        alert("Signup successful!");
+        localStorage.setItem("userID", user.uid);
+        window.location.href = "homepage.html"; // Change to your actual homepage
+      } catch (error) {
+        alert("Error: " + error.message);
       }
+    }
 
-      signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-        .then((result) => {
-          confirmationResult = result;
-          alert("OTP sent successfully.");
-        })
-        .catch((error) => {
-          console.error(error);
-          alert("Error sending OTP: " + error.message);
-        });
-    };
+    async function handleLogin() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-    window.verifyOTP = async () => {
-      const code = document.getElementById("otp").value;
-      if (!confirmationResult) {
-        alert("Please request OTP first.");
-        return;
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        localStorage.setItem("userID", user.uid);
+        window.location.href = "homepage.html"; // Change to your actual homepage
+      } catch (error) {
+        alert("Login failed: " + error.message);
       }
-
-      confirmationResult.confirm(code)
-        .then(async (result) => {
-          const user = result.user;
-
-          // Save user data in Firestore
-          const name = document.getElementById("name").value;
-          const username = document.getElementById("username").value;
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const phone = document.getElementById("phone").value;
-
-          await setDoc(doc(db, "users", user.uid), {
-            uid: user.uid,
-            name,
-            username,
-            email,
-            password,
-            phone,
-            createdAt: new Date()
-          });
-
-          alert("Signup successful!");
-          window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-          console.error(error);
-          alert("OTP verification failed: " + error.message);
-        });
-    };
+    }
   </script>
 </body>
 </html>
+
 
 
 
