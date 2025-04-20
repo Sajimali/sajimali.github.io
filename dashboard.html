@@ -84,68 +84,173 @@
 
     <div class="box">
       <h3>Earnings</h3>
-      <p>Total: ₹0</p>
-      <button onclick="alert('Upload: ₹0\nDownload: ₹0')">View Details</button>
+      <p id="earningTotal">Total: ₹0</p>
+      <button onclick="viewEarnings()">View Details</button>
     </div>
 
     <div class="box">
       <h3>Upload App</h3>
-      <input type="text" placeholder="App Name" />
-      <input type="text" placeholder="Username" />
-      <textarea placeholder="Comment"></textarea>
-      <input type="file" />
-      <input type="file" />
-      <input type="text" placeholder="AdMob Code (optional)" />
-      <button>Upload</button>
+      <input type="text" id="appName" placeholder="App Name" />
+      <input type="text" id="appUsername" placeholder="Username" />
+      <textarea id="appComment" placeholder="Comment"></textarea>
+      <input type="file" id="appScreenshot" />
+      <input type="file" id="appFile" />
+      <input type="text" id="admobCode" placeholder="AdMob Code (optional)" />
+      <button onclick="uploadApp()">Upload</button>
     </div>
 
     <div class="box">
       <h3>Withdraw</h3>
-      <input type="text" placeholder="Account Holder Name" />
-      <input type="text" placeholder="Bank Name" />
-      <input type="text" placeholder="Account Number" />
-      <input type="text" placeholder="IFSC Code" />
-      <input type="number" placeholder="Enter Amount (Min ₹10)" min="10" />
-      <button>Withdraw</button>
+      <input type="text" id="holderName" placeholder="Account Holder Name" />
+      <input type="text" id="bankName" placeholder="Bank Name" />
+      <input type="text" id="accountNumber" placeholder="Account Number" />
+      <input type="text" id="ifsc" placeholder="IFSC Code" />
+      <input type="number" id="withdrawAmount" placeholder="Enter Amount (Min ₹10)" min="10" />
+      <button onclick="requestWithdraw()">Withdraw</button>
     </div>
   </main>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    import { getDatabase, ref, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
       projectId: "sajku-store",
-      storageBucket: "sajku-store.firebasestorage.app",
+      storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
+      measurementId: "G-BDH8FP9R56",
+      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-  </script>
+    const db = getDatabase();
+    const storage = getStorage();
+    const auth = getAuth();
 
-  <script>
-    function updateProfile() {
-      const newPic = document.getElementById('profilePicInput').files[0];
-      const newName = document.getElementById('userNameInput').value;
-      if (newPic) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          document.getElementById('top-profile-pic').src = e.target.result;
-        };
-        reader.readAsDataURL(newPic);
+    const defaultAdmobCodes = [
+      "ca-app-pub-5534254536913287/6837788351",
+      "ca-app-pub-5534254536913287/6044824702",
+      "ca-app-pub-5534254536913287/7212596405",
+      "ca-app-pub-5534254536913287/3273351397",
+      "ca-app-pub-5534254536913287/7021024718"
+    ];
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        loadProfile();
+        loadEarnings();
+      } else {
+        window.location.href = "index.html";
       }
-      if (newName) {
-        document.getElementById('top-profile-name').innerText = newName;
+    });
+
+    function loadProfile() {
+      onValue(ref(db, `users/${currentUser.uid}`), snap => {
+        if (snap.exists()) {
+          const data = snap.val();
+          document.getElementById('top-profile-name').innerText = data.name || "User";
+          if (data.photo) document.getElementById('top-profile-pic').src = data.photo;
+        }
+      });
+    }
+
+    window.updateProfile = async function () {
+      const name = document.getElementById('userNameInput').value;
+      const file = document.getElementById('profilePicInput').files[0];
+
+      let photoURL = "";
+      if (file) {
+        const storageRef = sRef(storage, `profiles/${currentUser.uid}`);
+        await uploadBytes(storageRef, file);
+        photoURL = await getDownloadURL(storageRef);
       }
+
+      await update(ref(db, `users/${currentUser.uid}`), {
+        name: name || null,
+        photo: photoURL || null
+      });
+    }
+
+    window.uploadApp = async function () {
+      const name = document.getElementById('appName').value;
+      const user = document.getElementById('appUsername').value;
+      const comment = document.getElementById('appComment').value;
+      const screenshot = document.getElementById('appScreenshot').files[0];
+      const appFile = document.getElementById('appFile').files[0];
+      let admobCode = document.getElementById('admobCode').value;
+
+      if (!admobCode) admobCode = defaultAdmobCodes[Math.floor(Math.random() * defaultAdmobCodes.length)];
+
+      const screenshotRef = sRef(storage, `apps/${Date.now()}-screenshot`);
+      const fileRef = sRef(storage, `apps/${Date.now()}-file`);
+      await uploadBytes(screenshotRef, screenshot);
+      await uploadBytes(fileRef, appFile);
+
+      const screenshotURL = await getDownloadURL(screenshotRef);
+      const fileURL = await getDownloadURL(fileRef);
+
+      const appData = {
+        name,
+        username: user,
+        comment,
+        screenshotURL,
+        fileURL,
+        uploader: currentUser.uid,
+        admobCode,
+        timestamp: Date.now(),
+        status: "pending"
+      };
+
+      await push(ref(db, "apps"), appData);
+    }
+
+    function loadEarnings() {
+      onValue(ref(db, `earnings/${currentUser.uid}`), snap => {
+        if (snap.exists()) {
+          const data = snap.val();
+          let total = (data.upload || 0) + (data.download || 0);
+          document.getElementById('earningTotal').innerText = `Total: ₹${total}`;
+        }
+      });
+    }
+
+    window.viewEarnings = function () {
+      onValue(ref(db, `earnings/${currentUser.uid}`), snap => {
+        const up = snap.val()?.upload || 0;
+        const down = snap.val()?.download || 0;
+        alert(`Upload: ₹${up}\nDownload: ₹${down}`);
+      });
+    }
+
+    window.requestWithdraw = async function () {
+      const amount = parseInt(document.getElementById('withdrawAmount').value);
+      if (amount < 10) return alert("Minimum amount is ₹10");
+
+      const req = {
+        uid: currentUser.uid,
+        name: document.getElementById('holderName').value,
+        bank: document.getElementById('bankName').value,
+        acc: document.getElementById('accountNumber').value,
+        ifsc: document.getElementById('ifsc').value,
+        amount,
+        timestamp: Date.now()
+      };
+
+      await push(ref(db, "withdrawals"), req);
+      alert("Request sent successfully");
     }
   </script>
 </body>
 </html>
+
     
 
 
