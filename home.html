@@ -7,7 +7,6 @@
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Your powerful homepage UI remains unchanged -->
   <div id="userProfile" onclick="goToDashboard()">Loading...</div>
 
   <script>
@@ -18,7 +17,8 @@
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
+      measurementId: "G-BDH8FP9R56",
+      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -49,5 +49,6 @@
   </script>
 </body>
 </html>
+
 
         
