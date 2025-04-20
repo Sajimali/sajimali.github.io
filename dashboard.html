@@ -1,43 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Sajku1 - Dashboard</title>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f0f0;
+    }
+    header {
+      background-color: #0d47a1;
+      color: white;
+      padding: 16px;
+      text-align: center;
+    }
+    section {
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+    }
+    button {
+      margin-top: 12px;
+      padding: 10px 20px;
+      background-color: #0d47a1;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+    .ad-placeholder {
+      border: 2px dashed #ccc;
+      padding: 10px;
+      margin-top: 20px;
+      text-align: center;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
-  <!-- Your original dashboard layout -->
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-      authDomain: "sajku-store.firebaseapp.com",
-      projectId: "sajku-store",
-      storageBucket: "sajku-store.appspot.com",
-      messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56",
-      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const storage = firebase.storage();
-  </script>
+<header>
+  <h2>Sajku1 Dashboard</h2>
+</header>
 
-  <script>
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        const uid = user.uid;
-        // Dashboard logic using uid
-      } else {
-        window.location.href = "index.html";
-      }
-    });
-  </script>
+<section>
+  <!-- Profile Section -->
+  <div class="card">
+    <h3>Profile</h3>
+    <img id="profilePic" src="" width="80" height="80" style="border-radius: 50%;"><br>
+    <label>Name</label>
+    <input type="text" id="name">
+    <label>Username</label>
+    <input type="text" id="username">
+    <label>Change Photo</label>
+    <input type="file" id="photoUpload">
+    <button onclick="updateProfile()">Update Profile</button>
+  </div>
+
+  <!-- Earnings Section -->
+  <div class="card">
+    <h3>Earnings</h3>
+    <p>Upload Earnings: ₹<span id="uploadEarnings">0</span></p>
+    <p>Download Earnings: ₹<span id="downloadEarnings">0</span></p>
+    <p>Total: ₹<span id="totalEarnings">0</span></p>
+  </div>
+
+  <!-- AdMob Banner Placeholder -->
+  <div class="ad-placeholder">
+    [ Banner Ad: ca-app-pub-5534254536913287/6837788351 ]
+  </div>
+
+  <!-- Upload App Section -->
+  <div class="card">
+    <h3>Upload Your App</h3>
+    <label>App Name</label>
+    <input type="text" id="appName">
+    <label>Username</label>
+    <input type="text" id="appUsername">
+    <label>Comment</label>
+    <textarea id="appComment"></textarea>
+    <label>Screenshot</label>
+    <input type="file" id="screenshot">
+    <label>App File</label>
+    <input type="file" id="appFile">
+    <label>AdMob Code (optional)</label>
+    <input type="text" id="admobCode" placeholder="Leave blank for default">
+    <button onclick="uploadApp()">Upload</button>
+  </div>
+
+  <!-- Rewarded Video Ad Placeholder -->
+  <div class="ad-placeholder">
+    [ Rewarded Video Ad: ca-app-pub-5534254536913287/7212596405 ]
+  </div>
+
+  <!-- Withdraw Section -->
+  <div class="card">
+    <h3>Withdraw Earnings</h3>
+    <label>Bank Name</label>
+    <input type="text" id="bankName">
+    <label>Account Number</label>
+    <input type="text" id="accountNumber">
+    <label>IFSC Code</label>
+    <input type="text" id="ifscCode">
+    <button onclick="withdraw()">Request Withdraw</button>
+  </div>
+
+  <!-- Interstitial Ad Placeholder -->
+  <div class="ad-placeholder">
+    [ Interstitial Ad: ca-app-pub-5534254536913287/6044824702 ]
+  </div>
+
+  <!-- Native Cards Ad Placeholder -->
+  <div class="ad-placeholder">
+    [ Native Cards Ad: ca-app-pub-5534254536913287/3273351397 ]
+  </div>
+
+  <!-- App Open Ad Placeholder -->
+  <div class="ad-placeholder">
+    [ App Open Ad: ca-app-pub-5534254536913287/7021024718 ]
+  </div>
+</section>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+    authDomain: "sajku-store.firebaseapp.com",
+    projectId: "sajku-store",
+    storageBucket: "sajku-store.appspot.com",
+    messagingSenderId: "831227140840",
+    appId: "1:831227140840:web:634cc6248ead6ab186075d",
+    measurementId: "G-BDH8FP9R56"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  // Sample dummy functions for now
+  function updateProfile() {
+    alert("Profile updated!");
+  }
+
+  function uploadApp() {
+    alert("App uploaded! Default AdMob code used if left blank.");
+  }
+
+  function withdraw() {
+    alert("Withdraw request sent!");
+  }
+</script>
+
 </body>
 </html>
+
 
 
 
