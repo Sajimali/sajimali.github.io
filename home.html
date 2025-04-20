@@ -3,11 +3,34 @@
 <head>
   <title>Sajku1 - Home</title>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: #1976d2; padding: 10px 20px; color: white; border-radius: 10px; }
+    .user-info { display: flex; align-items: center; cursor: pointer; }
+    .user-info img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
+    .apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+    .app { background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .app img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; }
+    .app h3 { margin: 10px 0 5px; font-size: 16px; }
+    .app p { font-size: 14px; color: #555; }
+    button.download-btn { background: #1976d2; color: white; padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+  </style>
 </head>
 <body>
-  <div id="userProfile" onclick="goToDashboard()">Loading...</div>
+
+  <div class="header">
+    <h2>Sajku1 Store</h2>
+    <div class="user-info" onclick="goToDashboard()">
+      <img id="userPhoto" src="https://via.placeholder.com/40">
+      <span id="userName">Loading...</span>
+    </div>
+  </div>
+
+  <div class="apps" id="appsContainer">
+    <!-- Apps will be loaded here -->
+  </div>
 
   <script>
     const firebaseConfig = {
@@ -17,38 +40,51 @@
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56",
-      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
+      measurementId: "G-BDH8FP9R56"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
 
-  <script>
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        db.collection("users").doc(user.uid).get().then(doc => {
-          const data = doc.data();
-          if (data && data.name && data.photoURL) {
-            document.getElementById("userProfile").innerHTML = `
-              <img src="${data.photoURL}" style="width:40px;height:40px;border-radius:50%;"> 
-              ${data.name}
-            `;
-          } else {
-            document.getElementById("userProfile").innerText = "Profile Incomplete";
-          }
-        });
-      } else {
-        window.location.href = "index.html";
+    const uid = localStorage.getItem("userID");
+    if (!uid) window.location.href = "index.html";
+
+    firebase.database().ref("users/" + uid).once("value").then(snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        document.getElementById("userName").innerText = data.name || "User";
+        if (data.photoURL) document.getElementById("userPhoto").src = data.photoURL;
       }
     });
+
+    firebase.database().ref("apps").once("value").then(snapshot => {
+      const apps = snapshot.val();
+      const container = document.getElementById("appsContainer");
+      if (apps) {
+        Object.values(apps).forEach(app => {
+          const div = document.createElement("div");
+          div.className = "app";
+          div.innerHTML = `
+            <img src="${app.screenshot || 'https://via.placeholder.com/150'}" />
+            <h3>${app.name}</h3>
+            <p>${app.comment || ''}</p>
+            <button class="download-btn" onclick="downloadApp('${app.fileURL}')">Download</button>
+          `;
+          container.appendChild(div);
+        });
+      }
+    });
+
+    function downloadApp(url) {
+      window.open(url, "_blank");
+    }
 
     function goToDashboard() {
       window.location.href = "dashboard.html";
     }
   </script>
+
 </body>
 </html>
+
 
 
         
