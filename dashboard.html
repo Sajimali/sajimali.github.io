@@ -8,7 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <!-- Your original dashboard layout with profile editor, earnings, upload form, etc. -->
+  <!-- Your original dashboard layout -->
 
   <script>
     const firebaseConfig = {
@@ -18,7 +18,8 @@
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
+      measurementId: "G-BDH8FP9R56",
+      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -29,8 +30,7 @@
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         const uid = user.uid;
-        // Use UID to load profile, uploads, earnings etc.
-        // Your existing dashboard script continues from here
+        // Dashboard logic using uid
       } else {
         window.location.href = "index.html";
       }
@@ -38,6 +38,7 @@
   </script>
 </body>
 </html>
+
 
 
 
