@@ -1,89 +1,168 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Sajku1 - Home</title>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku1 Store</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
-    .header { display: flex; justify-content: space-between; align-items: center; background: #1976d2; padding: 10px 20px; color: white; border-radius: 10px; }
-    .user-info { display: flex; align-items: center; cursor: pointer; }
-    .user-info img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
-    .apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
-    .app { background: white; padding: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .app img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; }
-    .app h3 { margin: 10px 0 5px; font-size: 16px; }
-    .app p { font-size: 14px; color: #555; }
-    button.download-btn { background: #1976d2; color: white; padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+    }
+    header {
+      background-color: #6200ea;
+      color: white;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .main {
+      padding: 10px;
+    }
+    .category-tabs {
+      display: flex;
+      justify-content: space-around;
+      background: #f0f0f0;
+      padding: 10px 0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .category-tabs button {
+      background: none;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      color: #6200ea;
+    }
+    .app-list {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .app-card {
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      min-width: 150px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .app-card img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .install-btn {
+      background: #6200ea;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+    .download-count {
+      font-size: 12px;
+      color: gray;
+    }
+    nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: white;
+      border-top: 1px solid #ddd;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    nav a {
+      text-align: center;
+      color: #6200ea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    nav a i {
+      font-size: 18px;
+      display: block;
+    }
   </style>
 </head>
 <body>
-
-  <div class="header">
+  <header>
     <h2>Sajku1 Store</h2>
-    <div class="user-info" onclick="goToDashboard()">
-      <img id="userPhoto" src="https://via.placeholder.com/40">
-      <span id="userName">Loading...</span>
+    <div class="profile" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">
+      <img src="https://via.placeholder.com/40" alt="User Photo" />
+      <span>User Name</span>
     </div>
+  </header>
+  <div class="main">
+    <div class="category-tabs">
+      <button onclick="loadCategory('top')">Top Apps</button>
+      <button onclick="loadCategory('games')">Games</button>
+      <button onclick="loadCategory('tools')">Tools</button>
+      <button onclick="loadCategory('editors')">Editor's Choice</button>
+    </div>
+    <div id="app-container" class="app-list"></div>
   </div>
 
-  <div class="apps" id="appsContainer">
-    <!-- Apps will be loaded here -->
-  </div>
+  <nav>
+    <a href="#"><i class="fa fa-home"></i>Home</a>
+    <a href="#"><i class="fa fa-gamepad"></i>Games</a>
+    <a href="#"><i class="fa fa-search"></i>Search</a>
+    <a href="#"><i class="fa fa-gift"></i>Offers</a>
+    <a href="#"><i class="fa fa-money-bill"></i>Earnings</a>
+  </nav>
 
-  <script>
+  <!-- Firebase Config & Category Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
       projectId: "sajku-store",
-      storageBucket: "sajku-store.appspot.com",
+      storageBucket: "sajku-store.firebasestorage.app",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
       measurementId: "G-BDH8FP9R56"
     };
-    firebase.initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    const uid = localStorage.getItem("userID");
-    if (!uid) window.location.href = "index.html";
-
-    firebase.database().ref("users/" + uid).once("value").then(snapshot => {
-      const data = snapshot.val();
-      if (data) {
-        document.getElementById("userName").innerText = data.name || "User";
-        if (data.photoURL) document.getElementById("userPhoto").src = data.photoURL;
-      }
-    });
-
-    firebase.database().ref("apps").once("value").then(snapshot => {
-      const apps = snapshot.val();
-      const container = document.getElementById("appsContainer");
-      if (apps) {
-        Object.values(apps).forEach(app => {
-          const div = document.createElement("div");
-          div.className = "app";
-          div.innerHTML = `
-            <img src="${app.screenshot || 'https://via.placeholder.com/150'}" />
-            <h3>${app.name}</h3>
-            <p>${app.comment || ''}</p>
-            <button class="download-btn" onclick="downloadApp('${app.fileURL}')">Download</button>
-          `;
-          container.appendChild(div);
-        });
-      }
-    });
-
-    function downloadApp(url) {
-      window.open(url, "_blank");
-    }
-
-    function goToDashboard() {
-      window.location.href = "dashboard.html";
-    }
-  </script>
-
-</body>
-</html>
+    async function loadCategory(category) {
+      const appContainer = document.getElementById('app-container');
+      appContainer.innerHTML = '';
+      const querySnapshot = await getDocs(collection(db, category));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <img src="${data.image}" alt="App" />
+          <h4>${data.name}</h4>
+          <p class="download-count">${data.downloads} downloads</p>
+          <button class="install-btn" onclick="window.location.href='${data.link}'">Install</button>
+        `;
+        appContainer.appendChild(card);
+      });
+   
+::contentReference[oaicite:8]{index=8}
 
 
 
