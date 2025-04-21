@@ -1,92 +1,90 @@
-<!-- index.html -->
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Sajku1 - Real ID Login</title>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
-  <style>
-    /* Keep your original design here */
-    body { font-family: sans-serif; background: #f4f4f4; }
-    .container { max-width: 400px; margin: 30px auto; padding: 20px; background: white; border-radius: 10px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h3>Yahi aapka real ID hai, isi se aap pura sab kuchh kar sakte hain</h3>
-    <input id="name" placeholder="Full Name" /><br>
-    <input id="username" placeholder="Username" /><br>
-    <input id="email" type="email" placeholder="Email" /><br>
-    <input id="password" type="password" placeholder="Password" /><br>
-    <input id="phone" placeholder="Phone Number" /><br>
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Send OTP</button><br>
-    <input id="otp" placeholder="Enter OTP" /><br>
-    <button onclick="verifyOTP()">Verify & Create ID</button><br><br>
-    <button onclick="login()">Login</button>
-  </div>
+<!-- आपके कोड के साथ ये बदलाव करें -->
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-      authDomain: "sajku-store.firebaseapp.com",
-      projectId: "sajku-store",
-      storageBucket: "sajku-store.appspot.com",
-      messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
-    };
-    firebase.initializeApp(firebaseConfig);
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-    let confirmationResult;
+  const firebaseConfig = {
+    // आपका कॉन्फिग
+  };
 
-    function sendOTP() {
-      const phone = document.getElementById("phone").value;
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
-      firebase.auth().signInWithPhoneNumber(phone, window.recaptchaVerifier)
-        .then((result) => {
-          confirmationResult = result;
-          alert("OTP sent");
-        });
-    }
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    function verifyOTP() {
-      const code = document.getElementById("otp").value;
-      confirmationResult.confirm(code).then((result) => {
-        const user = result.user;
-        const name = document.getElementById("name").value;
-        const username = document.getElementById("username").value;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+  let confirmationResult;
 
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            const uid = userCredential.user.uid;
-            firebase.database().ref('users/' + uid).set({
-              name, username, email, phone: user.phoneNumber
-            }).then(() => {
-              localStorage.setItem('userID', uid);
-              window.location.href = "home.html";
-            });
-          });
+  window.sendOTP = () => {
+    const phone = document.getElementById("phone").value;
+    if (!phone) return alert("Please enter phone number.");
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      'size': 'normal',
+      'callback': (response) => {
+        console.log("reCAPTCHA verified");
+      },
+    });
+
+    const appVerifier = window.recaptchaVerifier;
+    signInWithPhoneNumber(auth, "+91" + phone, appVerifier)
+      .then((result) => {
+        confirmationResult = result;
+        alert("OTP Sent Successfully!");
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Failed to send OTP.");
       });
-    }
+  };
 
-    function login() {
+  window.verifyOTP = () => {
+    const otp = document.getElementById("otp").value;
+    if (!otp || !confirmationResult) return alert("Please enter the OTP sent to your number.");
+
+    confirmationResult.confirm(otp).then(async (result) => {
+      const user = result.user; // phone auth से साइन इन हुआ यूजर
+      const name = document.getElementById("name").value;
+      const username = document.getElementById("username").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const uid = userCredential.user.uid;
-          localStorage.setItem('userID', uid);
-          window.location.href = "home.html";
+      // अब आपको email/password से साइनअप करना होगा ताकि यूजर ईमेल भी कनेक्ट हो
+      // लेकिन Firebase Auth में एक यूजर को दो तरीके से साइन इन नहीं कर सकते
+      // इसलिए या तो OTP से साइन इन करें और बाकी डाटा Firestore में सेव करें
+      // या email/password से साइनअप करें
+
+      // यहाँ हम OTP से साइन इन यूजर का UID लेकर Firestore में डाटा सेव करेंगे
+
+      try {
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name,
+          username,
+          email,
+          phone: user.phoneNumber,
+          createdAt: new Date()
         });
+
+        alert("Signup successful!");
+        window.location.href = "index.html"; // Redirect to homepage
+      } catch (error) {
+        alert("Signup failed: " + error.message);
+      }
+    }).catch((error) => {
+      console.error(error);
+      alert("OTP Verification Failed.");
+    });
+  };
+
+  // अगर यूजर पहले से लॉगिन है तो सीधे होमपेज पर भेजें
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      window.location.href = "index.html";
     }
-  </script>
-</body>
-</html>
+  });
+</script>
+
 
 
 
