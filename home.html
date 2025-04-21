@@ -1,97 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Sajku1 App Store</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sajku1 Home</title>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: white;
-    }
-
-    header {
-      background-color: #1f1f1f;
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 24px;
-      font-weight: bold;
-      color: #00e676;
-    }
-
-    .profile {
-      display: flex;
-      align-items: center;
-    }
-
-    .profile img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-
-    .app-container {
-      padding: 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 20px;
-    }
-
-    .app-card {
-      background-color: #1e1e1e;
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-
-    .app-card img {
-      width: 100%;
-      border-radius: 10px;
-    }
-
-    .app-card h3 {
-      font-size: 16px;
-      margin: 10px 0 5px;
-    }
-
-    .app-card button {
-      background-color: #00e676;
-      color: black;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #f2f2f2; }
+    header { background: #3f51b5; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .profile-btn { border: none; background: transparent; color: white; cursor: pointer; display: flex; align-items: center; }
+    .profile-pic { width: 35px; height: 35px; border-radius: 50%; margin-right: 8px; }
+    .apps-container { padding: 20px; }
+    .app-card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
-
   <header>
-    <div class="logo">Sajku1 Store</div>
-    <div class="profile">
-      <img id="userPhoto" src="default.jpg" alt="Profile" />
-      <span id="userName">Loading...</span>
-    </div>
+    <h2>Sajku1 Store</h2>
+    <button class="profile-btn" onclick="goToDashboard()">
+      <img id="userPic" class="profile-pic" src="" alt="User">
+      <span id="userName">User</span>
+    </button>
   </header>
 
-  <main>
-    <div class="app-container" id="appList">
-      <!-- Apps will be loaded here -->
-    </div>
-  </main>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"></script>
+  <div class="apps-container" id="appsContainer">
+    <h3>Top Apps</h3>
+    <!-- Apps will be dynamically loaded -->
+  </div>
 
   <script>
     const firebaseConfig = {
@@ -101,65 +38,53 @@
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56",
-      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
+      measurementId: "G-BDH8FP9R56"
     };
-
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const uid = localStorage.getItem("uid");
+    const uid = localStorage.getItem("user");
     if (!uid) {
       window.location.href = "index.html";
     }
 
-    // Load user profile
-    firebase.database().ref("users/" + uid).once("value").then(snapshot => {
+    function goToDashboard() {
+      window.location.href = "dashboard.html";
+    }
+
+    db.ref("users/" + uid).once("value").then(snapshot => {
       const user = snapshot.val();
-      document.getElementById("userPhoto").src = user.photo || "default.jpg";
-      document.getElementById("userName").textContent = user.name || "User";
+      if (user) {
+        document.getElementById("userName").textContent = user.name || "User";
+        document.getElementById("userPic").src = user.photoURL || "https://via.placeholder.com/35";
+      }
     });
 
-    // Load Apps
-    firebase.database().ref("apps").on("value", snapshot => {
-      const appList = document.getElementById("appList");
-      appList.innerHTML = "";
-      snapshot.forEach(child => {
-        const app = child.val();
-        const appCard = document.createElement("div");
-        appCard.className = "app-card";
-        appCard.innerHTML = `
-          <img src="${app.screenshot}" alt="${app.appName}">
-          <h3>${app.appName}</h3>
-          <button onclick="downloadApp('${child.key}', '${app.appFile}', '${app.uploaderId}')">Download</button>
-        `;
-        appList.appendChild(appCard);
-      });
+    // Load apps from Firebase
+    db.ref("apps").once("value").then(snapshot => {
+      const apps = snapshot.val();
+      const container = document.getElementById("appsContainer");
+      if (apps) {
+        Object.keys(apps).forEach(key => {
+          const app = apps[key];
+          const appCard = document.createElement("div");
+          appCard.className = "app-card";
+          appCard.innerHTML = `
+            <h4>${app.name}</h4>
+            <p>By: ${app.username}</p>
+            <p>${app.comment}</p>
+            <button onclick="downloadApp('${app.url}')">Download</button>
+          `;
+          container.appendChild(appCard);
+        });
+      }
     });
 
-    function downloadApp(appId, fileUrl, uploaderId) {
-      window.open(fileUrl, '_blank');
-
-      // Track download
-      const userId = uid;
-      const sysShare = 0.20;
-      const uploaderShare = 0.65;
-      const downloaderShare = 0.15;
-
-      const downloadRef = firebase.database().ref("downloads").push();
-      downloadRef.set({
-        appId: appId,
-        by: userId,
-        at: new Date().toISOString()
-      });
-
-      // Update earnings
-      const earningsRef = firebase.database().ref("earnings");
-      earningsRef.child(uploaderId).transaction(current => (current || 0) + uploaderShare);
-      earningsRef.child(userId).transaction(current => (current || 0) + downloaderShare);
-      earningsRef.child("system").transaction(current => (current || 0) + sysShare);
+    function downloadApp(url) {
+      window.open(url, '_blank');
     }
   </script>
-
 </body>
 </html>
+
 
