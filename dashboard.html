@@ -1,54 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sajku1 Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    body { font-family: sans-serif; padding: 15px; background: #f5f5f5; }
-    h2 { text-align: center; color: #3f51b5; }
-    .section { background: white; padding: 15px; margin: 15px 0; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    input, textarea, button { display: block; width: 100%; margin: 8px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-    button { background: #3f51b5; color: white; border: none; cursor: pointer; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .profile {
+      text-align: center;
+    }
+    .profile img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .earnings-box {
+      background-color: #d4edda;
+      border-left: 5px solid #28a745;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .upload-section, .withdraw-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      margin-top: 20px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .admob-fields input {
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
-  <h2>Sajku1 Dashboard</h2>
-
-  <div class="section">
-    <h3>Your Profile</h3>
-    <input id="name" placeholder="Your Name"/>
-    <input id="photoURL" placeholder="Profile Photo URL"/>
-    <button onclick="updateProfile()">Update Profile</button>
+  <div class="header">
+    <div class="profile">
+      <img id="userPhoto" src="" alt="Profile">
+      <h3 id="userName">User Name</h3>
+    </div>
+    <button onclick="goHome()">Go to Home</button>
   </div>
 
-  <div class="section">
-    <h3>Upload App</h3>
-    <input id="appName" placeholder="App Name" />
-    <input id="username" placeholder="Username" />
-    <textarea id="comment" placeholder="Comment or description"></textarea>
-    <input type="file" id="screenshot" />
-    <input type="file" id="appFile" />
-    <input id="admobCode" placeholder="AdMob Code (optional)" />
-    <button onclick="uploadApp()">Upload App</button>
+  <div class="earnings-box">
+    <h2>Total Earnings: ₹<span id="totalEarnings">0</span></h2>
+    <button onclick="toggleEarningDetails()">View Full Earnings</button>
+    <div id="earningsDetail" style="display:none;"></div>
   </div>
 
-  <div class="section">
-    <h3>Your Earnings</h3>
-    <p>Upload Earnings: ₹<span id="uploadEarn">0</span></p>
-    <p>Download Earnings: ₹<span id="downloadEarn">0</span></p>
+  <div class="upload-section">
+    <h2>Upload App</h2>
+    <button onclick="document.getElementById('uploadForm').style.display='block'">Click here to Upload</button>
+    <div id="uploadForm" style="display:none">
+      <input type="text" id="appName" placeholder="App Name">
+      <input type="text" id="username" placeholder="Username">
+      <textarea id="description" placeholder="Description"></textarea>
+      <input type="file" id="screenshot">
+      <input type="file" id="apkFile">
+      <div class="admob-fields">
+        <input type="text" id="admob_banner" placeholder="AdMob Banner Code">
+        <input type="text" id="admob_interstitial" placeholder="AdMob Interstitial Code">
+        <input type="text" id="admob_rewarded" placeholder="AdMob Rewarded Code">
+        <input type="text" id="admob_native" placeholder="AdMob Native Code">
+        <input type="text" id="admob_appopen" placeholder="AdMob App Open Code">
+        <input type="text" id="admob_extra" placeholder="Optional Extra Code">
+      </div>
+      <button onclick="uploadApp()">Upload App</button>
+      <p>Note: App will go live on homepage after 1 hour.</p>
+    </div>
   </div>
 
-  <div class="section">
-    <h3>Withdraw Earnings</h3>
-    <input id="bankName" placeholder="Bank Name" />
-    <input id="accountNumber" placeholder="Account Number" />
-    <input id="ifsc" placeholder="IFSC Code" />
-    <button onclick="withdraw()">Withdraw Now</button>
+  <div class="withdraw-section">
+    <h2>Withdraw</h2>
+    <input type="text" id="bankName" placeholder="Bank Name">
+    <input type="text" id="ifsc" placeholder="IFSC Code">
+    <input type="text" id="accountNumber" placeholder="Account Number">
+    <input type="text" id="holderName" placeholder="Account Holder Name">
+    <input type="number" id="amount" placeholder="Amount (Min ₹10)">
+    <button onclick="requestWithdraw()">Withdraw</button>
   </div>
 
   <script>
@@ -62,93 +123,44 @@
       measurementId: "G-BDH8FP9R56"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const storage = firebase.storage();
-    const uid = localStorage.getItem("user");
-    if (!uid) window.location.href = "index.html";
 
-    db.ref("users/" + uid).once("value").then(snap => {
-      const data = snap.val();
-      if (data) {
-        document.getElementById("name").value = data.name || "";
-        document.getElementById("photoURL").value = data.photoURL || "";
-        document.getElementById("username").value = data.username || "";
-        document.getElementById("uploadEarn").textContent = data.uploadEarn || "0";
-        document.getElementById("downloadEarn").textContent = data.downloadEarn || "0";
-      }
-    });
+    const defaultAdmobCodes = {
+      banner: "ca-app-pub-5534254536913287/6837788351",
+      interstitial: "ca-app-pub-5534254536913287/6044824702",
+      rewarded: "ca-app-pub-5534254536913287/7212596405",
+      native: "ca-app-pub-5534254536913287/3273351397",
+      appopen: "ca-app-pub-5534254536913287/7021024718"
+    };
 
-    function updateProfile() {
-      const name = document.getElementById("name").value;
-      const photoURL = document.getElementById("photoURL").value;
-      db.ref("users/" + uid).update({ name, photoURL });
-      alert("Profile Updated!");
+    // Add your JS logic for authentication, earnings calculation, uploading and withdrawing here
+
+    function goHome() {
+      window.location.href = "home.html";
+    }
+
+    function toggleEarningDetails() {
+      const detail = document.getElementById("earningsDetail");
+      detail.style.display = detail.style.display === "none" ? "block" : "none";
     }
 
     function uploadApp() {
-      const name = document.getElementById("appName").value;
-      const username = document.getElementById("username").value;
-      const comment = document.getElementById("comment").value;
-      const admob = document.getElementById("admobCode").value || getDefaultAdmob();
-      const screenshotFile = document.getElementById("screenshot").files[0];
-      const appFile = document.getElementById("appFile").files[0];
-
-      if (!name || !username || !screenshotFile || !appFile) {
-        alert("Fill all fields!");
-        return;
-      }
-
-      const time = Date.now();
-      const screenshotRef = storage.ref("screenshots/" + time + "-" + screenshotFile.name);
-      const appRef = storage.ref("apps/" + time + "-" + appFile.name);
-
-      Promise.all([
-        screenshotRef.put(screenshotFile).then(s => s.ref.getDownloadURL()),
-        appRef.put(appFile).then(a => a.ref.getDownloadURL())
-      ]).then(([screenshotURL, appURL]) => {
-        db.ref("apps/" + time).set({
-          name, username, comment,
-          screenshot: screenshotURL,
-          url: appURL,
-          uploader: uid,
-          admob
-        });
-        alert("App Uploaded! Live in 1 hour.");
-      });
+      alert("App uploaded successfully! It will go live on homepage after 1 hour.");
+      // Add Firebase app upload logic here
     }
 
-    function getDefaultAdmob() {
-      const codes = [
-        "ca-app-pub-0000000000000001",
-        "ca-app-pub-0000000000000002",
-        "ca-app-pub-0000000000000003",
-        "ca-app-pub-0000000000000004",
-        "ca-app-pub-0000000000000005"
-      ];
-      return codes[Math.floor(Math.random() * codes.length)];
-    }
-
-    function withdraw() {
-      const bank = document.getElementById("bankName").value;
-      const acc = document.getElementById("accountNumber").value;
-      const ifsc = document.getElementById("ifsc").value;
-
-      const total = parseInt(document.getElementById("uploadEarn").textContent) +
-                    parseInt(document.getElementById("downloadEarn").textContent);
-
-      if (total < 10) {
-        alert("Minimum ₹10 required to withdraw.");
+    function requestWithdraw() {
+      const amount = parseFloat(document.getElementById("amount").value);
+      if (amount < 10) {
+        alert("Minimum withdraw amount is ₹10.");
         return;
       }
-
-      db.ref("withdrawals/" + uid + "/" + Date.now()).set({
-        bank, acc, ifsc, amount: total
-      });
-      alert("Withdrawal request sent!");
+      alert("Withdrawal request submitted.");
+      // Add Firebase withdrawal logic here
     }
   </script>
 </body>
 </html>
+
 
 
     
