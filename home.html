@@ -106,9 +106,9 @@
 <body>
   <header>
     <h2>Sajku1 Store</h2>
-    <div class="profile" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">
-      <img src="https://via.placeholder.com/40" alt="User Photo" />
-      <span>User Name</span>
+    <div class="profile" onclick="window.location.href='dashboard.html'">
+      <img id="user-photo" src="https://via.placeholder.com/40" alt="User Photo" />
+      <span id="user-name">User Name</span>
     </div>
   </header>
   <div class="main">
@@ -132,7 +132,8 @@
   <!-- Firebase Config & Category Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
@@ -144,6 +145,20 @@
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    const uid = localStorage.getItem("sajku_uid");
+    if (uid) {
+      const docRef = doc(db, "users", uid);
+      getDoc(docRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          document.getElementById("user-name").textContent = data.name;
+          if (data.photo) document.getElementById("user-photo").src = data.photo;
+        }
+      });
+    } else {
+      window.location.href = "signup.html";
+    }
 
     async function loadCategory(category) {
       const appContainer = document.getElementById('app-container');
@@ -161,7 +176,10 @@
         `;
         appContainer.appendChild(card);
       });
-   
-::contentReference[oaicite:8]{index=8}
+    }
+  </script>
+</body>
+</html>
+
 
               
