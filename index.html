@@ -1,99 +1,22 @@
-<!-- index.html (Sajku1 Real ID System - Final) -->
+<!-- index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Real ID - Sajku1</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #e3f2fd;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    .container {
-      background: white;
-      padding: 25px 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-    }
-    h2 {
-      color: #1565c0;
-      text-align: center;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      background-color: #1565c0;
-      color: white;
-      border: none;
-      padding: 12px;
-      width: 100%;
-      margin-top: 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background-color: #0d47a1;
-    }
-    #message {
-      margin-top: 15px;
-      text-align: center;
-      color: green;
-      font-weight: bold;
-    }
-  </style>
+  <title>Sajku1 Login</title>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h2>Yahi aapka Real ID hai</h2>
-    <label>Name</label>
-    <input type="text" id="name" required />
+  <!-- Your original login/signup UI here -->
 
-    <label>Username</label>
-    <input type="text" id="username" required />
-
-    <label>Email</label>
-    <input type="email" id="email" required />
-
-    <label>Password</label>
-    <input type="password" id="password" required />
-
-    <label>Mobile Number</label>
-    <input type="text" id="phone" required />
-
-    <label>OTP</label>
-    <input type="text" id="otp" />
-
-    <div id="recaptcha-container"></div>
-
-    <button onclick="sendOTP()">Send OTP</button>
-    <button onclick="verifyOTP()">Verify & Sign Up</button>
-
-    <p id="message"></p>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js"></script>
+  <form id="loginForm">
+    <!-- name, username, email, password, phone, otp fields -->
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button type="submit">Login</button>
+  </form>
 
   <script>
     const firebaseConfig = {
@@ -102,88 +25,28 @@
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
+      appId: "1:831227140840:web:634cc6248ead6ab186075d"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
 
-    // Check if user ID already exists in localStorage
-    window.onload = function() {
-      if (localStorage.getItem("userId")) {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
         window.location.href = "home.html";
       }
-    };
+    });
 
-    let recaptchaInitialized = false;
-
-    function sendOTP() {
-      const phone = document.getElementById("phone").value.trim();
-      const name = document.getElementById("name").value.trim();
-      const username = document.getElementById("username").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (!name || !username || !email || !password || !phone) {
-        document.getElementById("message").innerText = "Please fill all fields.";
-        return;
-      }
-
-      if (!recaptchaInitialized) {
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-          size: 'invisible'
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = "home.html";
+        })
+        .catch(error => {
+          alert(error.message);
         });
-        recaptchaInitialized = true;
-      }
-
-      const appVerifier = window.recaptchaVerifier;
-      const fullPhone = "+91" + phone;
-
-      auth.signInWithPhoneNumber(fullPhone, appVerifier)
-        .then((confirmationResult) => {
-          window.confirmationResult = confirmationResult;
-          document.getElementById("message").innerText = "OTP Sent!";
-        }).catch((error) => {
-          document.getElementById("message").innerText = error.message;
-        });
-    }
-
-    function verifyOTP() {
-      const otpCode = document.getElementById("otp").value.trim();
-      const name = document.getElementById("name").value.trim();
-      const username = document.getElementById("username").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (!otpCode) {
-        document.getElementById("message").innerText = "Please enter the OTP.";
-        return;
-      }
-
-      confirmationResult.confirm(otpCode).then((result) => {
-        const user = result.user;
-        const uid = user.uid;
-
-        db.ref("users/" + uid).set({
-          name: name,
-          username: username,
-          email: email,
-          photo: "",
-          earnings: {
-            upload: 0,
-            download: 0,
-            total: 0
-          }
-        });
-
-        localStorage.setItem("userId", uid);
-        window.location.href = "home.html";
-      }).catch((error) => {
-        document.getElementById("message").innerText = "Invalid OTP";
-      });
-    }
+    });
   </script>
 </body>
 </html>
