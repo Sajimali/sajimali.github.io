@@ -1,158 +1,16 @@
+<!-- home.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Sajku1 App Store</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sajku1 Home</title>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background: #f4faff;
-    }
-
-    header {
-      background: #0066cc;
-      color: white;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-weight: bold;
-      font-size: 20px;
-    }
-
-    .profile-btn {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .profile-btn img {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      margin-right: 10px;
-    }
-
-    .categories {
-      display: flex;
-      overflow-x: auto;
-      padding: 10px;
-      background: #e6f0ff;
-      gap: 10px;
-    }
-
-    .category {
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 20px;
-      padding: 6px 16px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .category:hover {
-      background: #0066cc;
-      color: white;
-    }
-
-    .app-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
-      padding: 20px;
-    }
-
-    .app-card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      overflow: hidden;
-      transition: transform 0.2s ease;
-    }
-
-    .app-card:hover {
-      transform: scale(1.02);
-    }
-
-    .app-card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-    }
-
-    .app-info {
-      padding: 10px;
-    }
-
-    .app-name {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .app-meta {
-      font-size: 13px;
-      color: gray;
-      margin: 5px 0;
-    }
-
-    .download-btn {
-      display: block;
-      margin: 10px auto;
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      text-align: center;
-      border-radius: 5px;
-      text-decoration: none;
-    }
-
-    .update-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #007bff;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 30px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
 </head>
 <body>
-
-  <header>
-    <div class="logo">Sajku1 Store</div>
-    <div class="profile-btn" onclick="goToDashboard()">
-      <img id="user-photo" src="default.png" alt="Photo">
-      <span id="user-name">Loading...</span>
-    </div>
-  </header>
-
-  <div class="categories">
-    <div class="category">All</div>
-    <div class="category">Games</div>
-    <div class="category">Tools</div>
-    <div class="category">Social</div>
-    <div class="category">Productivity</div>
-  </div>
-
-  <div class="app-grid" id="appGrid">
-    <!-- App cards will load here -->
-  </div>
-
-  <div class="update-btn" onclick="goToAppUpdates()">App Updates</div>
+  <!-- Your original homepage UI -->
+  <div id="userInfo"></div>
+  <button id="dashboardBtn">Go to Dashboard</button>
 
   <script>
     const firebaseConfig = {
@@ -161,58 +19,22 @@
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
+      appId: "1:831227140840:web:634cc6248ead6ab186075d"
     };
     firebase.initializeApp(firebaseConfig);
 
     firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        const uid = user.uid;
-        firebase.database().ref("users/" + uid).once('value').then(snapshot => {
-          const data = snapshot.val();
-          if (data) {
-            document.getElementById("user-name").textContent = data.name || "User";
-            document.getElementById("user-photo").src = data.photo || "default.png";
-          }
-        });
-
-        loadApps();
-      } else {
+      if (!user) {
         window.location.href = "index.html";
+      } else {
+        document.getElementById("userInfo").innerText = `Logged in as ${user.email}`;
       }
     });
 
-    function loadApps() {
-      const grid = document.getElementById("appGrid");
-      firebase.database().ref("apps").once('value').then(snapshot => {
-        snapshot.forEach(child => {
-          const app = child.val();
-          const card = document.createElement("div");
-          card.className = "app-card";
-          card.innerHTML = `
-            <img src="${app.screenshot || 'default.png'}">
-            <div class="app-info">
-              <div class="app-name">${app.name}</div>
-              <div class="app-meta">By ${app.username}</div>
-              <div class="app-meta">${app.comments?.length || 0} comments</div>
-              <a class="download-btn" href="${app.apkUrl}" target="_blank">Download</a>
-            </div>
-          `;
-          grid.appendChild(card);
-        });
-      });
-    }
-
-    function goToDashboard() {
+    document.getElementById("dashboardBtn").addEventListener("click", function() {
       window.location.href = "dashboard.html";
-    }
-
-    function goToAppUpdates() {
-      window.location.href = "dashboard.html#update";
-    }
+    });
   </script>
-
 </body>
 </html>
 
