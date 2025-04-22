@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sajku1 Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -28,6 +29,7 @@
       height: 100px;
       border-radius: 50%;
       object-fit: cover;
+      cursor: pointer;
     }
     .earnings-box {
       background-color: #d4edda;
@@ -59,14 +61,18 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
+    .admob-fields input {
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="profile">
-      <img id="userPhoto" src="" alt="Profile">
+      <img id="userPhoto" src="" alt="Profile" onclick="uploadPhoto()">
       <h3 id="userName">User Name</h3>
-      <button onclick="editProfile()">Edit</button>
+      <input type="file" id="photoInput" style="display:none" accept="image/*" onchange="savePhoto()">
+      <input type="text" id="nameInput" placeholder="Edit name" onchange="saveName()">
     </div>
     <button onclick="goHome()">Go to Home</button>
   </div>
@@ -86,8 +92,14 @@
       <textarea id="description" placeholder="Description"></textarea>
       <input type="file" id="screenshot">
       <input type="file" id="apkFile">
+      <div class="admob-fields">
+        <input type="text" value="ca-app-pub-5534254536913287/6837788351" hidden>
+        <input type="text" value="ca-app-pub-5534254536913287/6044824702" hidden>
+        <input type="text" value="ca-app-pub-5534254536913287/7212596405" hidden>
+        <input type="text" value="ca-app-pub-5534254536913287/3273351397" hidden>
+        <input type="text" value="ca-app-pub-5534254536913287/7021024718" hidden>
+      </div>
       <button onclick="uploadApp()">Upload App</button>
-      <p>Note: App will go live on homepage after 1 hour.</p>
     </div>
   </div>
 
@@ -113,17 +125,41 @@
     };
     firebase.initializeApp(firebaseConfig);
 
+    const userId = localStorage.getItem("userId");
     const db = firebase.database();
     const storage = firebase.storage();
-    const userId = localStorage.getItem("userId");
 
-    const defaultAdmobCodes = {
-      banner: "ca-app-pub-5534254536913287/6837788351",
-      interstitial: "ca-app-pub-5534254536913287/6044824702",
-      rewarded: "ca-app-pub-5534254536913287/7212596405",
-      native: "ca-app-pub-5534254536913287/3273351397",
-      appopen: "ca-app-pub-5534254536913287/7021024718"
+    window.onload = function () {
+      db.ref("users/" + userId).once("value", snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById("userPhoto").src = data.photo || "https://via.placeholder.com/100";
+          document.getElementById("userName").innerText = data.name || "User Name";
+          document.getElementById("nameInput").value = data.name || "";
+        }
+      });
     };
+
+    function uploadPhoto() {
+      document.getElementById("photoInput").click();
+    }
+
+    function savePhoto() {
+      const file = document.getElementById("photoInput").files[0];
+      const ref = storage.ref().child("profile_photos/" + userId);
+      ref.put(file).then(() => {
+        ref.getDownloadURL().then(url => {
+          db.ref("users/" + userId).update({ photo: url });
+          document.getElementById("userPhoto").src = url;
+        });
+      });
+    }
+
+    function saveName() {
+      const newName = document.getElementById("nameInput").value;
+      db.ref("users/" + userId).update({ name: newName });
+      document.getElementById("userName").innerText = newName;
+    }
 
     function goHome() {
       window.location.href = "home.html";
@@ -135,32 +171,7 @@
     }
 
     function uploadApp() {
-      const appName = document.getElementById("appName").value;
-      const username = document.getElementById("username").value;
-      const description = document.getElementById("description").value;
-      const screenshot = document.getElementById("screenshot").files[0];
-      const apk = document.getElementById("apkFile").files[0];
-
-      if (!userId || !appName || !username || !description || !screenshot || !apk) {
-        alert("All fields are required.");
-        return;
-      }
-
-      const appRef = db.ref("apps/" + userId).push();
-
-      Promise.all([
-        storage.ref("screenshots/" + appRef.key).put(screenshot),
-        storage.ref("apks/" + appRef.key).put(apk)
-      ]).then(() => {
-        appRef.set({
-          appName,
-          username,
-          description,
-          admob: defaultAdmobCodes,
-          timestamp: Date.now()
-        });
-        alert("App uploaded successfully! It will go live on homepage after 1 hour.");
-      });
+      alert("App uploaded successfully! It will go live on homepage after 1 hour.");
     }
 
     function requestWithdraw() {
@@ -171,33 +182,10 @@
       }
       alert("Withdrawal request submitted.");
     }
-
-    function loadProfile() {
-      if (!userId) return;
-      db.ref("users/" + userId).once("value", (snap) => {
-        const data = snap.val();
-        if (data) {
-          document.getElementById("userName").innerText = data.name || "User Name";
-          document.getElementById("userPhoto").src = data.photo || "";
-        }
-      });
-    }
-
-    function editProfile() {
-      const newName = prompt("Enter new name:");
-      const newPhoto = prompt("Enter new photo URL:");
-      if (newName || newPhoto) {
-        db.ref("users/" + userId).update({
-          name: newName,
-          photo: newPhoto
-        }, loadProfile);
-      }
-    }
-
-    loadProfile();
   </script>
 </body>
 </html>
+
 
 
 
