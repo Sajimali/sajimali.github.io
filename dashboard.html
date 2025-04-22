@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sajku1 Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -60,9 +59,6 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-    .admob-fields input {
-      margin-bottom: 8px;
-    }
   </style>
 </head>
 <body>
@@ -70,6 +66,7 @@
     <div class="profile">
       <img id="userPhoto" src="" alt="Profile">
       <h3 id="userName">User Name</h3>
+      <button onclick="editProfile()">Edit</button>
     </div>
     <button onclick="goHome()">Go to Home</button>
   </div>
@@ -89,14 +86,6 @@
       <textarea id="description" placeholder="Description"></textarea>
       <input type="file" id="screenshot">
       <input type="file" id="apkFile">
-      <div class="admob-fields">
-        <input type="text" id="admob_banner" placeholder="AdMob Banner Code">
-        <input type="text" id="admob_interstitial" placeholder="AdMob Interstitial Code">
-        <input type="text" id="admob_rewarded" placeholder="AdMob Rewarded Code">
-        <input type="text" id="admob_native" placeholder="AdMob Native Code">
-        <input type="text" id="admob_appopen" placeholder="AdMob App Open Code">
-        <input type="text" id="admob_extra" placeholder="Optional Extra Code">
-      </div>
       <button onclick="uploadApp()">Upload App</button>
       <p>Note: App will go live on homepage after 1 hour.</p>
     </div>
@@ -124,6 +113,10 @@
     };
     firebase.initializeApp(firebaseConfig);
 
+    const db = firebase.database();
+    const storage = firebase.storage();
+    const userId = localStorage.getItem("userId");
+
     const defaultAdmobCodes = {
       banner: "ca-app-pub-5534254536913287/6837788351",
       interstitial: "ca-app-pub-5534254536913287/6044824702",
@@ -131,8 +124,6 @@
       native: "ca-app-pub-5534254536913287/3273351397",
       appopen: "ca-app-pub-5534254536913287/7021024718"
     };
-
-    // Add your JS logic for authentication, earnings calculation, uploading and withdrawing here
 
     function goHome() {
       window.location.href = "home.html";
@@ -144,8 +135,32 @@
     }
 
     function uploadApp() {
-      alert("App uploaded successfully! It will go live on homepage after 1 hour.");
-      // Add Firebase app upload logic here
+      const appName = document.getElementById("appName").value;
+      const username = document.getElementById("username").value;
+      const description = document.getElementById("description").value;
+      const screenshot = document.getElementById("screenshot").files[0];
+      const apk = document.getElementById("apkFile").files[0];
+
+      if (!userId || !appName || !username || !description || !screenshot || !apk) {
+        alert("All fields are required.");
+        return;
+      }
+
+      const appRef = db.ref("apps/" + userId).push();
+
+      Promise.all([
+        storage.ref("screenshots/" + appRef.key).put(screenshot),
+        storage.ref("apks/" + appRef.key).put(apk)
+      ]).then(() => {
+        appRef.set({
+          appName,
+          username,
+          description,
+          admob: defaultAdmobCodes,
+          timestamp: Date.now()
+        });
+        alert("App uploaded successfully! It will go live on homepage after 1 hour.");
+      });
     }
 
     function requestWithdraw() {
@@ -155,11 +170,35 @@
         return;
       }
       alert("Withdrawal request submitted.");
-      // Add Firebase withdrawal logic here
     }
+
+    function loadProfile() {
+      if (!userId) return;
+      db.ref("users/" + userId).once("value", (snap) => {
+        const data = snap.val();
+        if (data) {
+          document.getElementById("userName").innerText = data.name || "User Name";
+          document.getElementById("userPhoto").src = data.photo || "";
+        }
+      });
+    }
+
+    function editProfile() {
+      const newName = prompt("Enter new name:");
+      const newPhoto = prompt("Enter new photo URL:");
+      if (newName || newPhoto) {
+        db.ref("users/" + userId).update({
+          name: newName,
+          photo: newPhoto
+        }, loadProfile);
+      }
+    }
+
+    loadProfile();
   </script>
 </body>
 </html>
+
 
 
 
