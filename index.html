@@ -80,6 +80,13 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    window.addEventListener('load', () => {
+      const uid = localStorage.getItem("userID");
+      if (uid) {
+        window.location.href = "home.html";
+      }
+    });
+
     window.signUpUser = async () => {
       const name = document.getElementById("name").value;
       const username = document.getElementById("username").value;
@@ -123,6 +130,7 @@
   </script>
 </body>
 </html>
+
 
 
 
