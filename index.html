@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -75,23 +76,25 @@
 
     let confirmationResult;
 
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      'size': 'normal',
-      'callback': (response) => {
-        console.log("reCAPTCHA verified");
-      }
-    });
-
     window.sendOTP = () => {
       const phone = document.getElementById("phone").value;
-      signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
-        .then((result) => {
-          confirmationResult = result;
-          alert("OTP Sent Successfully!");
-        })
-        .catch((error) => {
-          alert("Failed to send OTP: " + error.message);
-        });
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'normal',
+        'callback': (response) => {
+          console.log("reCAPTCHA verified");
+        },
+      });
+
+      recaptchaVerifier.render().then(() => {
+        signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
+          .then((result) => {
+            confirmationResult = result;
+            alert("OTP Sent Successfully!");
+          })
+          .catch((error) => {
+            alert("Failed to send OTP.");
+          });
+      });
     };
 
     window.verifyOTP = () => {
@@ -123,12 +126,13 @@
           alert("Signup failed: " + e.message);
         }
       }).catch((error) => {
-        alert("OTP verification failed: " + error.message);
+        alert("OTP verification failed.");
       });
     };
   </script>
 </body>
 </html>
+
 
 
 
