@@ -1,3 +1,4 @@
+<!-- Updated version without OTP -->
 <!-- index.html -->
 <!DOCTYPE html>
 <html>
@@ -43,21 +44,20 @@
 </head>
 <body>
   <div class="container">
+    <h3>Yahi aapka real ID hai, isse aap paisa kama sakte hain</h3>
     <h2>Sign Up</h2>
     <input type="text" id="name" placeholder="Full Name" required>
     <input type="text" id="username" placeholder="Username" required>
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Password" required>
     <input type="text" id="phone" placeholder="Mobile Number" required>
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Send OTP</button>
-    <input type="text" id="otp" placeholder="Enter OTP">
-    <button onclick="verifyOTP()">Verify & Sign Up</button>
+    <button onclick="signUpUser()">Sign Up</button>
+    <button onclick="window.location.href='login.html'">Login</button>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -74,64 +74,37 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let confirmationResult;
-
-    window.sendOTP = () => {
+    window.signUpUser = async () => {
+      const name = document.getElementById("name").value;
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
       const phone = document.getElementById("phone").value;
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'normal',
-        'callback': (response) => {
-          console.log("reCAPTCHA verified");
-        },
-      });
 
-      recaptchaVerifier.render().then(() => {
-        signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
-          .then((result) => {
-            confirmationResult = result;
-            alert("OTP Sent Successfully!");
-          })
-          .catch((error) => {
-            alert("Failed to send OTP.");
-          });
-      });
-    };
-
-    window.verifyOTP = () => {
-      const otp = document.getElementById("otp").value;
-      if (!otp || !confirmationResult) return alert("Please enter OTP");
-      confirmationResult.confirm(otp).then(async (result) => {
-        const name = document.getElementById("name").value;
-        const username = document.getElementById("username").value;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const phone = document.getElementById("phone").value;
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const uid = userCredential.user.uid;
-          await setDoc(doc(db, "users", uid), {
-            uid, name, username, email, phone,
-            createdAt: new Date(),
-            admob: {
-              banner: "ca-app-pub-5534254536913287/6837788351",
-              interstitial: "ca-app-pub-5534254536913287/6044824702",
-              rewarded: "ca-app-pub-5534254536913287/7212596405",
-              native: "ca-app-pub-5534254536913287/3273351397",
-              appOpen: "ca-app-pub-5534254536913287/7021024718"
-            }
-          });
-          localStorage.setItem("userID", uid);
-          window.location.href = "home.html";
-        } catch (e) {
-          alert("Signup failed: " + e.message);
-        }
-      }).catch((error) => {
-        alert("OTP verification failed.");
-      });
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+        await setDoc(doc(db, "users", uid), {
+          uid, name, username, email, phone,
+          createdAt: new Date(),
+          admob: {
+            banner: "ca-app-pub-5534254536913287/6837788351",
+            interstitial: "ca-app-pub-5534254536913287/6044824702",
+            rewarded: "ca-app-pub-5534254536913287/7212596405",
+            native: "ca-app-pub-5534254536913287/3273351397",
+            appOpen: "ca-app-pub-5534254536913287/7021024718"
+          }
+        });
+        localStorage.setItem("userID", uid);
+        window.location.href = "home.html";
+      } catch (e) {
+        alert("Signup failed: " + e.message);
+      }
     };
   </script>
 </body>
 </html>
+
 
 
 
