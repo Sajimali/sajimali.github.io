@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up | Sajku1</title>
   <style>
     body {
@@ -65,26 +65,25 @@
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d"
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    let confirmationResult = null;
+
+    let confirmationResult;
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      'size': 'normal',
+      'callback': (response) => {
+        console.log("reCAPTCHA verified");
+      }
+    });
 
     window.sendOTP = () => {
       const phone = document.getElementById("phone").value;
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "normal",
-          callback: () => {
-            console.log("reCAPTCHA verified");
-          }
-        });
-        window.recaptchaVerifier.render();
-      }
-
       signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
         .then((result) => {
           confirmationResult = result;
@@ -97,22 +96,16 @@
 
     window.verifyOTP = () => {
       const otp = document.getElementById("otp").value;
-      if (!otp || !confirmationResult) {
-        alert("Please enter OTP");
-        return;
-      }
-
+      if (!otp || !confirmationResult) return alert("Please enter OTP");
       confirmationResult.confirm(otp).then(async (result) => {
         const name = document.getElementById("name").value;
         const username = document.getElementById("username").value;
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         const phone = document.getElementById("phone").value;
-
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const uid = userCredential.user.uid;
-
           await setDoc(doc(db, "users", uid), {
             uid, name, username, email, phone,
             createdAt: new Date(),
@@ -124,19 +117,19 @@
               appOpen: "ca-app-pub-5534254536913287/7021024718"
             }
           });
-
           localStorage.setItem("userID", uid);
           window.location.href = "home.html";
         } catch (e) {
           alert("Signup failed: " + e.message);
         }
-      }).catch(() => {
-        alert("OTP verification failed.");
+      }).catch((error) => {
+        alert("OTP verification failed: " + error.message);
       });
     };
   </script>
 </body>
 </html>
+
 
 
 
