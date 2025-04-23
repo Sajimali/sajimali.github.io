@@ -47,7 +47,7 @@
     <input type="text" id="username" placeholder="Username" required>
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Password" required>
-    <input type="text" id="phone" placeholder="Mobile Number (without +91)" required>
+    <input type="text" id="phone" placeholder="Mobile Number" required>
     <div id="recaptcha-container"></div>
     <button onclick="sendOTP()">Send OTP</button>
     <input type="text" id="otp" placeholder="Enter OTP">
@@ -72,37 +72,36 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
     let confirmationResult;
 
     window.sendOTP = () => {
       const phone = document.getElementById("phone").value;
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          'size': 'normal',
-          'callback': () => console.log("reCAPTCHA verified"),
-        });
-      }
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          console.log("reCAPTCHA verified");
+        },
+      });
       signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
         .then((result) => {
           confirmationResult = result;
           alert("OTP Sent Successfully!");
         })
         .catch((error) => {
-          alert("Failed to send OTP: " + error.message);
+          alert("Failed to send OTP.");
         });
     };
 
     window.verifyOTP = () => {
       const otp = document.getElementById("otp").value;
       if (!otp || !confirmationResult) return alert("Please enter OTP");
-
       confirmationResult.confirm(otp).then(async (result) => {
         const name = document.getElementById("name").value;
         const username = document.getElementById("username").value;
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         const phone = document.getElementById("phone").value;
-
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const uid = userCredential.user.uid;
@@ -122,13 +121,14 @@
         } catch (e) {
           alert("Signup failed: " + e.message);
         }
-      }).catch(() => {
+      }).catch((error) => {
         alert("OTP verification failed.");
       });
     };
   </script>
 </body>
 </html>
+
 
 
 
