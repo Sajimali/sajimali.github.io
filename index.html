@@ -72,30 +72,35 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
     let confirmationResult;
 
     window.sendOTP = () => {
       const phone = document.getElementById("phone").value;
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response) => {
-          console.log("reCAPTCHA verified");
-        },
-      });
+
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+          'size': 'normal',
+          'callback': (response) => {
+            console.log("reCAPTCHA verified");
+          },
+        }, auth);
+        window.recaptchaVerifier.render();
+      }
+
       signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
         .then((result) => {
           confirmationResult = result;
           alert("OTP Sent Successfully!");
         })
         .catch((error) => {
-          alert("Failed to send OTP.");
+          alert("Failed to send OTP: " + error.message);
         });
     };
 
     window.verifyOTP = () => {
       const otp = document.getElementById("otp").value;
       if (!otp || !confirmationResult) return alert("Please enter OTP");
+
       confirmationResult.confirm(otp).then(async (result) => {
         const name = document.getElementById("name").value;
         const username = document.getElementById("username").value;
@@ -128,6 +133,7 @@
   </script>
 </body>
 </html>
+
 
 
 
