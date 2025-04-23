@@ -1,4 +1,4 @@
-<!-- Updated index.html with Login feature added -->
+<!-- Updated version: OTP and phone removed, login added, design unchanged -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -49,7 +49,6 @@
     <input type="text" id="username" placeholder="Username" required>
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Password" required>
-    <input type="text" id="phone" placeholder="Mobile Number" required>
     <button onclick="signUpUser()">Sign Up</button>
     <button onclick="loginUser()">Login</button>
   </div>
@@ -78,13 +77,12 @@
       const username = document.getElementById("username").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const phone = document.getElementById("phone").value;
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
         await setDoc(doc(db, "users", uid), {
-          uid, name, username, email, phone,
+          uid, name, username, email,
           createdAt: new Date(),
           admob: {
             banner: "ca-app-pub-5534254536913287/6837788351",
@@ -117,6 +115,7 @@
   </script>
 </body>
 </html>
+
 
 
 
