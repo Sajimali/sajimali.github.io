@@ -129,7 +129,6 @@
     <a href="#" onclick="updateApp()"><i class="fa fa-download"></i>App Update</a>
   </nav>
 
-  <!-- Firebase Config & Category Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
@@ -138,11 +137,12 @@
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
       projectId: "sajku-store",
-      storageBucket: "sajku-store.firebasestorage.app",
+      storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
       measurementId: "G-BDH8FP9R56"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -180,11 +180,11 @@
 
     window.updateApp = function() {
       alert('App update feature is under development or checking for updates...');
-      // yahan aap real update logic ya modal dialog add kar sakte ho
     };
   </script>
 </body>
 </html>
+
 
 
 
