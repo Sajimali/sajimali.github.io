@@ -129,6 +129,7 @@
     <a href="#" onclick="updateApp()"><i class="fa fa-download"></i>App Update</a>
   </nav>
 
+  <!-- Firebase Config & Category Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
@@ -142,11 +143,10 @@
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
       measurementId: "G-BDH8FP9R56"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const uid = localStorage.getItem("sajku_uid");
+    const uid = localStorage.getItem("userID");
     if (uid) {
       const docRef = doc(db, "users", uid);
       getDoc(docRef).then(docSnap => {
@@ -166,12 +166,13 @@
       const querySnapshot = await getDocs(collection(db, category));
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+        if (!data.image || !data.name || !data.link) return;
         const card = document.createElement('div');
         card.className = 'app-card';
         card.innerHTML = `
           <img src="${data.image}" alt="App" />
           <h4>${data.name}</h4>
-          <p class="download-count">${data.downloads} downloads</p>
+          <p class="download-count">${data.downloads || 0} downloads</p>
           <button class="install-btn" onclick="window.location.href='${data.link}'">Install</button>
         `;
         appContainer.appendChild(card);
@@ -181,13 +182,9 @@
     window.updateApp = function() {
       alert('App update feature is under development or checking for updates...');
     };
-
-    window.addEventListener('load', () => {
-      loadCategory('top');
-    });
   </script>
 </body>
-</html>
+</html>hai 
 
 
 
