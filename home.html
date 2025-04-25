@@ -1,8 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sajku1 Store</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -60,13 +59,16 @@
       border-radius: 10px;
       padding: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      min-width: 150px;
+      min-width: 160px;
       flex-shrink: 0;
       position: relative;
+      text-align: center;
     }
     .app-card img {
-      width: 100%;
-      border-radius: 10px;
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 12px;
     }
     .install-btn {
       background: #6200ea;
@@ -119,18 +121,13 @@
       <button onclick="loadCategory('editors')">Editor's Choice</button>
     </div>
     <div id="app-container" class="app-list"></div>
-  </div>
-
-  <nav>
+  </div>  <nav>
     <a href="#"><i class="fa fa-home"></i>Home</a>
     <a href="#"><i class="fa fa-gamepad"></i>Games</a>
     <a href="#"><i class="fa fa-search"></i>Search</a>
     <a href="#"><i class="fa fa-gift"></i>Offers</a>
     <a href="#" onclick="updateApp()"><i class="fa fa-download"></i>App Update</a>
-  </nav>
-
-  <!-- Firebase Config & Category Script -->
-  <script type="module">
+  </nav>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
@@ -143,6 +140,7 @@
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
       measurementId: "G-BDH8FP9R56"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -157,23 +155,22 @@
         }
       });
     } else {
-      window.location.href = "signup.html";
+      window.location.href = "index.html";
     }
 
     async function loadCategory(category) {
       const appContainer = document.getElementById('app-container');
       appContainer.innerHTML = '';
       const querySnapshot = await getDocs(collection(db, category));
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (!data.image || !data.name || !data.link) return;
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
         const card = document.createElement('div');
         card.className = 'app-card';
         card.innerHTML = `
-          <img src="${data.image}" alt="App" />
+          <img src="${data.image}" alt="App Logo" />
           <h4>${data.name}</h4>
           <p class="download-count">${data.downloads || 0} downloads</p>
-          <button class="install-btn" onclick="window.location.href='${data.link}'">Install</button>
+          <button class="install-btn" onclick="window.location.href='app-detail.html?id=${docSnap.id}&cat=${category}'">View</button>
         `;
         appContainer.appendChild(card);
       });
@@ -182,9 +179,8 @@
     window.updateApp = function() {
       alert('App update feature is under development or checking for updates...');
     };
-  </script>
-</body>
-</html>hai 
+  </script></body>
+</html>
 
 
 
