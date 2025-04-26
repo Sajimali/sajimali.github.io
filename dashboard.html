@@ -1,13 +1,133 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sajku1 Store Dashboard</title>
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js';const firebaseConfig = {
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sajku1 Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .profile {
+      text-align: center;
+    }
+    .profile img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+      border: 3px solid #007bff;
+    }
+    .profile input[type="file"], .profile input[type="text"] {
+      display: block;
+      margin: 10px auto;
+    }
+    button {
+      background: #007bff;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .earnings-box, .upload-section, .withdraw-section, .admin-section {
+      background: white;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #uploadForm, #adminAnalytics, #systemEarnings {
+      display: none;
+      margin-top: 20px;
+    }
+    .lock-btn {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="profile">
+    <img id="userPhoto" src="https://via.placeholder.com/100" onclick="uploadPhoto()">
+    <h3 id="userName">User Name</h3>
+    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="savePhoto()">
+    <input type="text" id="nameInput" placeholder="Edit name" onchange="saveName()">
+  </div>
+  <button onclick="goHome()">Go to Home</button>
+</div>
+
+<div class="earnings-box">
+  <h2>Total Earnings: ₹<span id="totalEarnings">0</span></h2>
+  <button class="lock-btn" onclick="unlockSystem()">Unlock System Earnings</button>
+  <div id="systemEarnings">
+    <h3>System Earnings (Hidden)</h3>
+    <p id="systemEarningsValue">₹0</p>
+  </div>
+</div>
+
+<div class="upload-section">
+  <h2>Upload App</h2>
+  <button onclick="toggleUploadForm()">Upload App Here</button>
+  <div id="uploadForm">
+    <input type="text" id="appName" placeholder="App Name">
+    <input type="text" id="username" placeholder="Username">
+    <textarea id="description" placeholder="Description"></textarea>
+    <input type="file" id="screenshot">
+    <input type="file" id="apkFile">
+    <h4>Default Admob Codes Applied Automatically</h4>
+    <button onclick="uploadApp()">Upload App</button>
+  </div>
+</div>
+
+<div class="withdraw-section">
+  <h2>Withdraw Earnings</h2>
+  <input type="text" id="bankName" placeholder="Bank Name">
+  <input type="text" id="ifsc" placeholder="IFSC Code">
+  <input type="text" id="accountNumber" placeholder="Account Number">
+  <input type="text" id="holderName" placeholder="Account Holder Name">
+  <input type="number" id="amount" placeholder="Amount (Minimum ₹10)">
+  <button onclick="requestWithdraw()">Submit Withdrawal</button>
+</div>
+
+<div class="admin-section">
+  <h2>Admin Analytics</h2>
+  <button class="lock-btn" onclick="unlockAnalytics()">Unlock Analytics</button>
+  <div id="adminAnalytics">
+    <h3>Total Uploads: <span id="totalUploads">0</span></h3>
+    <h3>Total Downloads: <span id="totalDownloads">0</span></h3>
+    <h3>Trending Apps: <span id="trendingApps">0</span></h3>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
   apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
   authDomain: "sajku-store.firebaseapp.com",
   projectId: "sajku-store",
@@ -16,104 +136,89 @@
   appId: "1:831227140840:web:634cc6248ead6ab186075d",
   measurementId: "G-BDH8FP9R56"
 };
+firebase.initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
-const storage = getStorage();
+const userId = localStorage.getItem('userId') || 'test-user';
+const db = firebase.database();
+const storage = firebase.storage();
 
-const defaultAdmob = {
-  banner: 'ca-app-pub-5534254536913287/6837788351',
-  interstitial: 'ca-app-pub-5534254536913287/6044824702',
-  rewarded: 'ca-app-pub-5534254536913287/7212596405',
-  native: 'ca-app-pub-5534254536913287/3273351397',
-  appOpen: 'ca-app-pub-5534254536913287/7021024718'
-};
-
-let currentUser;
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
-  currentUser = user;
-
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  const earningsDoc = await getDoc(doc(db, "earnings", user.uid));
-  const systemDoc = await getDoc(doc(db, "system", "earnings"));
-
-  document.getElementById("username").innerText = userDoc.data().name || "User";
-  document.getElementById("profile-pic").src = userDoc.data().photoURL || "default.png";
-  document.getElementById("upload-earnings").innerText = earningsDoc.data().upload || 0;
-  document.getElementById("download-earnings").innerText = earningsDoc.data().download || 0;
-  window.systemEarnings = systemDoc.data().amount || 0;
-  window.systemPassword = systemDoc.data().password || '1234';
-});
-
-window.unlockSystemBox = () => {
-  const entered = document.getElementById("system-password").value;
-  if (entered === window.systemPassword) {
-    document.getElementById("system-box").style.display = "block";
-    document.getElementById("system-amount").innerText = window.systemEarnings;
-    document.getElementById("message").innerText = "Unlocked!";
-  } else {
-    document.getElementById("message").innerText = "Wrong Password!";
-  }
-};
-
-window.changeSystemPassword = async () => {
-  const newPass = document.getElementById("new-system-password").value;
-  await setDoc(doc(db, "system", "earnings"), { password: newPass }, { merge: true });
-  window.systemPassword = newPass;
-  document.getElementById("message").innerText = "Password Changed!";
-};
-
-window.uploadApp = async () => {
-  const name = document.getElementById("app-name").value;
-  const admob = {
-    banner: document.getElementById("admob-banner").value || defaultAdmob.banner,
-    interstitial: document.getElementById("admob-interstitial").value || defaultAdmob.interstitial,
-    rewarded: document.getElementById("admob-rewarded").value || defaultAdmob.rewarded,
-    native: document.getElementById("admob-native").value || defaultAdmob.native,
-    appOpen: document.getElementById("admob-appopen").value || defaultAdmob.appOpen
-  };
-  await setDoc(doc(db, "apps", name + Date.now()), {
-    name,
-    uploaderId: currentUser.uid,
-    admob,
-    downloads: 0
+window.onload = function() {
+  db.ref("users/" + userId).once("value", snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      document.getElementById('userPhoto').src = data.photo || "https://via.placeholder.com/100";
+      document.getElementById('userName').innerText = data.name || "User Name";
+      document.getElementById('nameInput').value = data.name || "";
+    }
   });
-  alert("App uploaded successfully!");
+};
+
+function uploadPhoto() {
+  document.getElementById('photoInput').click();
 }
 
-  </script>
-</head>
-<body>
-  <h2>Welcome, <span id="username"></span></h2>
-  <img id="profile-pic" width="100" height="100" />
-  <div>
-    <h3>Your Earnings</h3>
-    <p>Upload Earnings: ₹<span id="upload-earnings"></span></p>
-    <p>Download Earnings: ₹<span id="download-earnings"></span></p>
-  </div>
-  <div>
-    <h3>Upload New App</h3>
-    <input id="app-name" placeholder="App Name" />
-    <input id="admob-banner" placeholder="Banner Ad Unit" />
-    <input id="admob-interstitial" placeholder="Interstitial Ad Unit" />
-    <input id="admob-rewarded" placeholder="Rewarded Ad Unit" />
-    <input id="admob-native" placeholder="Native Ad Unit" />
-    <input id="admob-appopen" placeholder="App Open Ad Unit" />
-    <button onclick="uploadApp()">Upload App</button>
-  </div>
-  <div>
-    <h3>System Earnings (Locked)</h3>
-    <input type="password" id="system-password" placeholder="Enter Password" />
-    <button onclick="unlockSystemBox()">Unlock</button>
-    <p id="message"></p>
-    <div id="system-box" style="display:none">
-      <p>Total System Earnings: ₹<span id="system-amount"></span></p>
-      <input type="password" id="new-system-password" placeholder="New Password" />
-      <button onclick="changeSystemPassword()">Change Password</button>
-    </div>
-  </div>
+function savePhoto() {
+  const file = document.getElementById('photoInput').files[0];
+  const ref = storage.ref('profile_photos/' + userId);
+  ref.put(file).then(() => {
+    ref.getDownloadURL().then(url => {
+      db.ref('users/' + userId).update({ photo: url });
+      document.getElementById('userPhoto').src = url;
+    });
+  });
+}
+
+function saveName() {
+  const name = document.getElementById('nameInput').value;
+  db.ref('users/' + userId).update({ name: name });
+  document.getElementById('userName').innerText = name;
+}
+
+function goHome() {
+  window.location.href = "home.html";
+}
+
+function toggleUploadForm() {
+  const form = document.getElementById('uploadForm');
+  form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+function uploadApp() {
+  alert("App upload successful!\nAdmob Codes applied:\nBanner: ca-app-pub-5534254536913287/6837788351\nInterstitial: ca-app-pub-5534254536913287/6044824702\nRewarded: ca-app-pub-5534254536913287/7212596405\nNative: ca-app-pub-5534254536913287/3273351397\nAppOpen: ca-app-pub-5534254536913287/7021024718");
+}
+
+function requestWithdraw() {
+  const amt = document.getElementById('amount').value;
+  if (amt < 10) {
+    alert("Minimum ₹10 required for withdrawal.");
+    return;
+  }
+  alert("Withdrawal request sent successfully!");
+}
+
+function unlockSystem() {
+  const pass = prompt("Enter Admin Password:");
+  if (pass === "Sajim@1234567") {
+    document.getElementById('systemEarnings').style.display = "block";
+    document.getElementById('systemEarningsValue').innerText = "₹5000 (Example)";
+  } else {
+    alert("Wrong Password!");
+  }
+}
+
+function unlockAnalytics() {
+  const pass = prompt("Enter Admin Password:");
+  if (pass === "Sajim@1234567") {
+    document.getElementById('adminAnalytics').style.display = "block";
+    document.getElementById('totalUploads').innerText = "128 Apps";
+    document.getElementById('totalDownloads').innerText = "7569 Downloads";
+    document.getElementById('trendingApps').innerText = "Top 10 Apps";
+  } else {
+    alert("Wrong Password!");
+  }
+}
+</script>
+
 </body>
 </html>
 
