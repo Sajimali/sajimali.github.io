@@ -2,253 +2,145 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sajku1 Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sajku1 Store - Dashboard</title>
+  <link rel="stylesheet" href="styles.css"> <!-- Add your CSS file -->
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
-
-  <style>
-    body {
-      background: linear-gradient(135deg, #4e54c8, #8f94fb);
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 20px;
-      color: white;
-    }
-    h1, h2 {
-      text-align: center;
-      color: #fff;
-    }
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      background: rgba(0,0,0,0.6);
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #000;
-    }
-    input, button, textarea {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: none;
-    }
-    button {
-      background-color: #ff4081;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #f50057;
-    }
-    .section {
-      margin-bottom: 40px;
-    }
-    .admin-section {
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 30px;
-    }
-    .hidden {
-      display: none;
-    }
-    .notification {
-      background: #00c853;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-  </style>
 </head>
-
 <body>
-<div class="container">
-
-  <h1>Welcome to Sajku1 Dashboard</h1>
-
-  <div id="notification"></div>
-
-  <div class="section">
-    <h2>Profile</h2>
-    <input type="text" id="name" placeholder="Your Name">
-    <input type="text" id="photoURL" placeholder="Photo URL">
-    <button onclick="updateProfile()">Update Profile</button>
+  <!-- Your dashboard HTML content here -->
+  <h1>Welcome to Sajku1 Store Dashboard</h1>
+  <div id="profile">
+    <h2>Your Profile</h2>
+    <img id="profile-pic" src="" alt="Profile Picture">
+    <p id="user-name"></p>
+    <button onclick="changeProfilePic()">Change Picture</button>
+    <button onclick="changeUserName()">Change Name</button>
   </div>
 
-  <div class="section">
-    <h2>Upload App</h2>
-    <input type="text" id="appName" placeholder="App Name">
-    <input type="text" id="appIcon" placeholder="App Icon URL">
-    <input type="text" id="appScreenshot" placeholder="App Screenshot URL">
-    <input type="text" id="category" placeholder="Category (Top/Games/Tools/Editors)">
-    <input type="text" id="bannerAd" placeholder="Banner Ad Unit ID">
-    <input type="text" id="interstitialAd" placeholder="Interstitial Ad Unit ID">
-    <input type="text" id="rewardedAd" placeholder="Rewarded Video Ad Unit ID">
-    <input type="text" id="nativeAd" placeholder="Native Ad Unit ID">
-    <input type="text" id="appOpenAd" placeholder="App Open Ad Unit ID">
-    <button onclick="uploadApp()">Upload App</button>
+  <!-- Upload/Download Section -->
+  <div id="app-upload">
+    <h2>Upload Your App</h2>
+    <input type="file" id="apk-file" accept=".apk">
+    <input type="text" id="app-name" placeholder="App Name">
+    <textarea id="app-description" placeholder="App Description"></textarea>
+    <input type="file" id="app-screenshot" accept="image/*">
+    <input type="text" id="admob-banner" placeholder="AdMob Banner Code">
+    <input type="text" id="admob-interstitial" placeholder="AdMob Interstitial Code">
+    <input type="text" id="admob-rewarded" placeholder="AdMob Rewarded Code">
+    <input type="text" id="admob-native" placeholder="AdMob Native Code">
+    <input type="text" id="admob-appopen" placeholder="AdMob App Open Code">
+    <button onclick="uploadApp()">Upload</button>
   </div>
 
-  <div class="section">
-    <h2>Withdraw Earnings</h2>
-    <input type="text" id="bankDetails" placeholder="Your Bank Details">
-    <button onclick="requestWithdraw()">Request Withdraw</button>
+  <div id="user-earnings">
+    <h2>Your Earnings</h2>
+    <div id="total-earnings"></div>
   </div>
 
-  <div class="section">
-    <h2>Earnings</h2>
-    <div id="earningsDisplay">Loading earnings...</div>
-  </div>
-
-  <div class="admin-section">
-    <h2>System Earnings (Admin Only)</h2>
-    <input type="password" id="systemPassword" placeholder="Enter System Password">
-    <button onclick="unlockSystemEarnings()">Unlock</button>
-    <div id="systemEarningsSection" class="hidden">
-      <div id="systemEarnings">Loading system earnings...</div>
-      <input type="password" id="newSystemPassword" placeholder="New System Password">
-      <button onclick="changeSystemPassword()">Change Password</button>
+  <div id="admin-section">
+    <h2>Admin Section (Password Protected)</h2>
+    <input type="password" id="admin-password" placeholder="Enter Admin Password">
+    <button onclick="unlockAdmin()">Unlock Admin</button>
+    <div id="system-earnings">
+      <h3>System Earnings</h3>
+      <div id="system-earnings-details"></div>
     </div>
   </div>
 
-  <div class="admin-section">
-    <h2>Admin Analytics</h2>
-    <input type="password" id="analyticsPassword" placeholder="Enter Analytics Password">
-    <button onclick="unlockAnalytics()">Unlock</button>
-    <div id="analyticsSection" class="hidden">
-      <div id="analytics">Loading analytics...</div>
-    </div>
-  </div>
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56",
+      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+  </script>
 
-</div>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-    authDomain: "sajku-store.firebaseapp.com",
-    projectId: "sajku-store",
-    storageBucket: "sajku-store.appspot.com",
-    messagingSenderId: "831227140840",
-    appId: "1:831227140840:web:634cc6248ead6ab186075d",
-    measurementId: "G-BDH8FP9R56",
-    databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
-  };
-  firebase.initializeApp(firebaseConfig);
-
-  const db = firebase.firestore();
-  const realtimeDB = firebase.database();
-  const storage = firebase.storage();
-
-  const defaultSystemPassword = "sajim@78678600";
-
-  const userID = localStorage.getItem("userID") || "unknown";
-
-  function showNotification(message) {
-    const notification = document.getElementById("notification");
-    notification.innerHTML = `<div class="notification">${message}</div>`;
-    setTimeout(() => { notification.innerHTML = ""; }, 4000);
-  }
-
-  function updateProfile() {
-    const name = document.getElementById("name").value;
-    const photoURL = document.getElementById("photoURL").value;
-    db.collection("users").doc(userID).update({ name, photoURL })
-      .then(() => showNotification("Profile updated successfully!"))
-      .catch(err => console.error(err));
-  }
-
-  function uploadApp() {
-    const appName = document.getElementById("appName").value;
-    const appIcon = document.getElementById("appIcon").value;
-    const appScreenshot = document.getElementById("appScreenshot").value;
-    const category = document.getElementById("category").value;
-    const bannerAd = document.getElementById("bannerAd").value || "ca-app-pub-5534254536913287/6837788351";
-    const interstitialAd = document.getElementById("interstitialAd").value || "ca-app-pub-5534254536913287/6044824702";
-    const rewardedAd = document.getElementById("rewardedAd").value || "ca-app-pub-5534254536913287/7212596405";
-    const nativeAd = document.getElementById("nativeAd").value || "ca-app-pub-5534254536913287/3273351397";
-    const appOpenAd = document.getElementById("appOpenAd").value || "ca-app-pub-5534254536913287/7021024718";
-
-    db.collection("apps").add({
-      userID,
-      appName,
-      appIcon,
-      appScreenshot,
-      category,
-      ads: { bannerAd, interstitialAd, rewardedAd, nativeAd, appOpenAd },
-      downloads: 0,
-      timestamp: Date.now()
-    }).then(() => {
-      showNotification("App uploaded successfully!");
-    }).catch(err => console.error(err));
-  }
-
-  function requestWithdraw() {
-    const bankDetails = document.getElementById("bankDetails").value;
-    realtimeDB.ref("withdrawRequests/" + userID).set({
-      bankDetails,
-      requestedAt: Date.now()
-    }).then(() => {
-      showNotification("Withdraw requested successfully!");
-    }).catch(err => console.error(err));
-  }
-
-  function unlockSystemEarnings() {
-    const enteredPassword = document.getElementById("systemPassword").value;
-    if (enteredPassword === defaultSystemPassword) {
-      document.getElementById("systemEarningsSection").classList.remove("hidden");
-      db.collection("systemEarnings").doc("main").get()
-        .then(doc => {
-          document.getElementById("systemEarnings").innerText = "System Earnings: ₹" + (doc.data()?.amount || 0);
+  <!-- Firebase Authentication and Database Logic -->
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        localStorage.setItem("userID", user.uid);
+        // Fetch user profile data
+        db.collection("users").doc(user.uid).get().then(doc => {
+          document.getElementById('user-name').innerText = doc.data().name;
+          document.getElementById('profile-pic').src = doc.data().photoURL;
         });
-    } else {
-      alert("Wrong password!");
-    }
-  }
-
-  function changeSystemPassword() {
-    const newPassword = document.getElementById("newSystemPassword").value;
-    if (newPassword) {
-      // Here you need to manually update password in production
-      alert("Password change feature simulated! Manually change in code for security.");
-    }
-  }
-
-  function unlockAnalytics() {
-    const enteredPassword = document.getElementById("analyticsPassword").value;
-    if (enteredPassword === defaultSystemPassword) {
-      document.getElementById("analyticsSection").classList.remove("hidden");
-      db.collection("apps").get().then(snapshot => {
-        const totalUploads = snapshot.size;
-        document.getElementById("analytics").innerText = "Total Apps Uploaded: " + totalUploads;
-      });
-    } else {
-      alert("Wrong password!");
-    }
-  }
-
-  function loadEarnings() {
-    db.collection("earnings").doc(userID).get().then(doc => {
-      const earnings = doc.data();
-      if (earnings) {
-        document.getElementById("earningsDisplay").innerHTML = `
-          <strong>Uploader Earnings:</strong> ₹${earnings.uploader || 0}<br>
-          <strong>Downloader Earnings:</strong> ₹${earnings.downloader || 0}<br>
-        `;
-      } else {
-        document.getElementById("earningsDisplay").innerText = "No earnings found.";
       }
     });
-  }
 
-  loadEarnings();
-</script>
+    function changeProfilePic() {
+      // Logic to change profile picture
+    }
 
+    function changeUserName() {
+      // Logic to change user name
+    }
+
+    function uploadApp() {
+      const appName = document.getElementById("app-name").value;
+      const appDescription = document.getElementById("app-description").value;
+      const apkFile = document.getElementById("apk-file").files[0];
+      const screenshot = document.getElementById("app-screenshot").files[0];
+      const admobBanner = document.getElementById("admob-banner").value || "ca-app-pub-5534254536913287/6837788351";
+      const admobInterstitial = document.getElementById("admob-interstitial").value || "ca-app-pub-5534254536913287/6044824702";
+      const admobRewarded = document.getElementById("admob-rewarded").value || "ca-app-pub-5534254536913287/7212596405";
+      const admobNative = document.getElementById("admob-native").value || "ca-app-pub-5534254536913287/3273351397";
+      const admobAppOpen = document.getElementById("admob-appopen").value || "ca-app-pub-5534254536913287/7021024718";
+
+      // Upload APK to Firebase Storage
+      const storageRef = storage.ref('apps/' + appName + '.apk');
+      storageRef.put(apkFile).then(snapshot => {
+        storageRef.getDownloadURL().then(url => {
+          // Save app details in Firestore
+          db.collection("apps").add({
+            appName: appName,
+            description: appDescription,
+            apkUrl: url,
+            screenshots: screenshot ? screenshot.name : "no-screenshot",
+            admobBanner: admobBanner,
+            admobInterstitial: admobInterstitial,
+            admobRewarded: admobRewarded,
+            admobNative: admobNative,
+            admobAppOpen: admobAppOpen,
+            uploaderId: firebase.auth().currentUser.uid
+          }).then(() => {
+            alert("App uploaded successfully!");
+          }).catch(error => {
+            alert("Error uploading app: " + error.message);
+          });
+        });
+      });
+    }
+
+    function unlockAdmin() {
+      const password = document.getElementById("admin-password").value;
+      if (password === "admin123") {
+        document.getElementById("system-earnings").style.display = "block";
+        // Fetch system earnings
+        db.collection("systemEarnings").get().then(snapshot => {
+          snapshot.forEach(doc => {
+            document.getElementById("system-earnings-details").innerText = "Total System Earnings: " + doc.data().totalEarnings;
+          });
+        });
+      } else {
+        alert("Incorrect password");
+      }
+    }
+  </script>
 </body>
 </html>
 
