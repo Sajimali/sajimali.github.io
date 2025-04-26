@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,12 +30,19 @@
       object-fit: cover;
       cursor: pointer;
     }
-    .earnings-box {
-      background-color: #d4edda;
-      border-left: 5px solid #28a745;
+    .earnings-box, .system-box {
       padding: 20px;
       border-radius: 10px;
       margin-top: 20px;
+    }
+    .earnings-box {
+      background-color: #d4edda;
+      border-left: 5px solid #28a745;
+    }
+    .system-box {
+      background-color: #f8d7da;
+      border-left: 5px solid #dc3545;
+      display: none;
     }
     .upload-section, .withdraw-section {
       background: #fff;
@@ -75,15 +81,19 @@
       <input type="text" id="nameInput" placeholder="Edit name" onchange="saveName()">
     </div>
     <button onclick="goHome()">Go to Home</button>
-  </div>
-
-  <div class="earnings-box">
+  </div>  <div class="earnings-box">
     <h2>Total Earnings: ₹<span id="totalEarnings">0</span></h2>
-    <button onclick="toggleEarningDetails()">View Full Earnings</button>
-    <div id="earningsDetail" style="display:none;"></div>
-  </div>
-
-  <div class="upload-section">
+    <p>Uploader: 65% | Downloader: 15% | System: 20%</p>
+    <div id="earningBreakup"></div>
+  </div>  <div class="system-box" id="systemBox">
+    <h2>System Earnings (Protected)</h2>
+    <input type="password" id="adminPass" placeholder="Enter admin password">
+    <button onclick="unlockSystemBox()">Unlock</button>
+    <div id="systemEarnings" style="display:none;">
+      <p>Total System Earnings: ₹<span id="systemTotal">0</span></p>
+      <button onclick="transferToBank()">Transfer to Bank</button>
+    </div>
+  </div>  <div class="upload-section">
     <h2>Upload App</h2>
     <button onclick="document.getElementById('uploadForm').style.display='block'">Click here to Upload</button>
     <div id="uploadForm" style="display:none">
@@ -93,17 +103,15 @@
       <input type="file" id="screenshot">
       <input type="file" id="apkFile">
       <div class="admob-fields">
-        <input type="text" value="ca-app-pub-5534254536913287/6837788351" hidden>
-        <input type="text" value="ca-app-pub-5534254536913287/6044824702" hidden>
-        <input type="text" value="ca-app-pub-5534254536913287/7212596405" hidden>
-        <input type="text" value="ca-app-pub-5534254536913287/3273351397" hidden>
-        <input type="text" value="ca-app-pub-5534254536913287/7021024718" hidden>
+        <input type="text" placeholder="Banner Ad Unit ID (optional)" id="bannerAd">
+        <input type="text" placeholder="Interstitial Ad Unit ID (optional)" id="interstitialAd">
+        <input type="text" placeholder="Rewarded Video Ad Unit ID (optional)" id="rewardedAd">
+        <input type="text" placeholder="Native Ad Unit ID (optional)" id="nativeAd">
+        <input type="text" placeholder="App Open Ad Unit ID (optional)" id="appOpenAd">
       </div>
       <button onclick="uploadApp()">Upload App</button>
     </div>
-  </div>
-
-  <div class="withdraw-section">
+  </div>  <div class="withdraw-section">
     <h2>Withdraw</h2>
     <input type="text" id="bankName" placeholder="Bank Name">
     <input type="text" id="ifsc" placeholder="IFSC Code">
@@ -111,9 +119,7 @@
     <input type="text" id="holderName" placeholder="Account Holder Name">
     <input type="number" id="amount" placeholder="Amount (Min ₹10)">
     <button onclick="requestWithdraw()">Withdraw</button>
-  </div>
-
-  <script>
+  </div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
@@ -128,6 +134,14 @@
     const userId = localStorage.getItem("userId");
     const db = firebase.database();
     const storage = firebase.storage();
+
+    const defaultAdmob = {
+      banner: "ca-app-pub-5534254536913287/6837788351",
+      interstitial: "ca-app-pub-5534254536913287/6044824702",
+      rewarded: "ca-app-pub-5534254536913287/7212596405",
+      native: "ca-app-pub-5534254536913287/3273351397",
+      appopen: "ca-app-pub-5534254536913287/7021024718"
+    };
 
     window.onload = function () {
       db.ref("users/" + userId).once("value", snapshot => {
@@ -165,13 +179,15 @@
       window.location.href = "home.html";
     }
 
-    function toggleEarningDetails() {
-      const detail = document.getElementById("earningsDetail");
-      detail.style.display = detail.style.display === "none" ? "block" : "none";
-    }
-
     function uploadApp() {
-      alert("App uploaded successfully! It will go live on homepage after 1 hour.");
+      const appDetails = {
+        banner: document.getElementById("bannerAd").value || defaultAdmob.banner,
+        interstitial: document.getElementById("interstitialAd").value || defaultAdmob.interstitial,
+        rewarded: document.getElementById("rewardedAd").value || defaultAdmob.rewarded,
+        native: document.getElementById("nativeAd").value || defaultAdmob.native,
+        appopen: document.getElementById("appOpenAd").value || defaultAdmob.appopen
+      };
+      alert("App uploaded with ads set! It will go live on homepage after 1 hour.");
     }
 
     function requestWithdraw() {
@@ -182,16 +198,21 @@
       }
       alert("Withdrawal request submitted.");
     }
-  </script>
-</body>
+
+    function unlockSystemBox() {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === "admin123") {
+        document.getElementById("systemEarnings").style.display = "block";
+      } else {
+        alert("Wrong password");
+      }
+    }
+
+    function transferToBank() {
+      alert("Earnings transferred to bank.");
+    }
+  </script></body>
 </html>
-
-
-
-
-
-
-    
 
 
   
