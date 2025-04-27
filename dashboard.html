@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sajku1 Dashboard - Full System</title>
+  <title>Sajku1 Dashboard - Full System (Updated)</title>
 
   <!-- Firebase Scripts -->
   <script type="module">
@@ -31,8 +31,11 @@
     const rtdb = getDatabase();
     const storage = getStorage();
 
-    // Admin password (Default inside Firestore 'admin/password')
+    // Admin password
     let systemPassword = "";
+    let passwordAttempts = 0;
+    let systemBlocked = false;
+
     async function getSystemPassword() {
       const passDoc = await getDoc(doc(db, "admin", "password"));
       if (passDoc.exists()) {
@@ -125,9 +128,11 @@
     };
 
     // Fetch Earnings
+    let userEarnings = { uploader: 0, downloader: 0 };
     async function fetchEarnings(uid) {
       onValue(dbRef(rtdb, `earnings/${uid}`), (snapshot) => {
         const data = snapshot.val() || { uploader: 0, downloader: 0 };
+        userEarnings = data;
         document.getElementById('uploaderEarning').innerText = `${data.uploader} ₹`;
         document.getElementById('downloaderEarning').innerText = `${data.downloader} ₹`;
       });
@@ -147,7 +152,7 @@
       });
     }
 
-    // Open App Function
+    // Open App
     window.openApp = (id) => {
       window.location.href = `view-app.html?id=${id}`;
     };
@@ -157,14 +162,19 @@
       signOut(auth);
     };
 
-    // Withdraw Request
+    // Withdraw Request (with earning check)
     window.requestWithdraw = async () => {
-      const amount = document.getElementById('withdrawAmount').value;
+      const amount = Number(document.getElementById('withdrawAmount').value);
       const bankName = document.getElementById('bankName').value;
       const accountNumber = document.getElementById('accountNumber').value;
       const ifscCode = document.getElementById('ifscCode').value;
       const user = auth.currentUser;
-      if (!user || !amount || amount <= 0) return alert("Invalid Withdraw Information!");
+      if (!user || amount <= 0) return alert("Invalid Withdraw Information!");
+
+      const totalEarning = userEarnings.uploader + userEarnings.downloader;
+      if (amount > totalEarning) {
+        return alert("Insufficient Balance!");
+      }
 
       await addDoc(collection(db, "withdraws"), {
         userId: user.uid,
@@ -174,32 +184,32 @@
         ifscCode,
         requestedAt: new Date()
       });
+
       alert("Withdraw Request Submitted Successfully!");
     };
 
-    // Admin Password Change
+    // Admin Password Change (with blocking system)
     window.changePassword = async () => {
+      if (systemBlocked) {
+        return alert("System permanently blocked due to multiple wrong password attempts.");
+      }
+      const enteredPassword = prompt("Enter System Password:");
+      if (enteredPassword !== systemPassword) {
+        passwordAttempts++;
+        if (passwordAttempts >= 3) {
+          systemBlocked = true;
+          alert("System permanently blocked!");
+        } else {
+          alert("Wrong Password! Attempts Left: " + (3 - passwordAttempts));
+        }
+        return;
+      }
       const newPassword = document.getElementById('newPassword').value;
       if (!newPassword) return alert("Enter a New Password!");
       await setDoc(doc(db, "admin", "password"), { pass: newPassword });
+      systemPassword = newPassword;
+      passwordAttempts = 0;
       alert("Password Changed Successfully!");
-    };
-
-    // Admin Lock System
-    let adminAttempts = 3;
-    window.verifyAdminPassword = () => {
-      const inputPass = document.getElementById('adminPasswordInput').value.trim();
-      if (inputPass === systemPassword) {
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-      } else {
-        adminAttempts--;
-        if (adminAttempts <= 0) {
-          document.getElementById('lockScreen').innerHTML = "<p style='color:red; font-weight:bold;'>Access Denied Permanently!</p>";
-        } else {
-          document.getElementById('attemptsLeft').innerText = `Wrong Password! ${adminAttempts} attempts left.`;
-        }
-      }
     };
   </script>
 
@@ -254,12 +264,26 @@
       list-style-type: none;
       padding: 0;
     }
+    .warning {
+      background-color: red;
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
   </style>
 </head>
 
 <body>
 
 <div class="dashboard">
+
+  <!-- Warning Box -->
+  <div class="warning">
+    Shear Shayari ya System ke sath chhedkhani karoge to ID permanently ban ho sakti hai.
+  </div>
 
   <!-- Profile Section -->
   <div class="box">
@@ -296,6 +320,16 @@
     <button onclick="uploadApp()">Upload App</button>
   </div>
 
+  <!-- Withdraw Earnings -->
+  <div class="box">
+    <h2>Withdraw Earnings</h2>
+    <input type="text" id="bankName" placeholder="Bank Name">
+    <input type="text" id="accountNumber" placeholder="Account Number">
+    <input type="text" id="ifscCode" placeholder="IFSC Code">
+    <input type="number" id="withdrawAmount" placeholder="Withdraw Amount ₹">
+    <button onclick="requestWithdraw()">Request Withdraw</button>
+  </div>
+
   <!-- Uploaded Apps -->
   <div class="box">
     <h2>My Uploaded Apps</h2>
@@ -303,30 +337,10 @@
   </div>
 
   <!-- Admin System Lock Panel -->
-  <div class="box" id="adminBox">
+  <div class="box">
     <h2>Admin System Lock</h2>
-    <p style="color: red; font-weight: bold;">** Sher Shayari Ya Galat Prayog Karoge To ID Permanent Band Ho Sakti Hai **</p>
-
-    <div id="lockScreen">
-      <input type="password" id="adminPasswordInput" placeholder="Enter System Password">
-      <button onclick="verifyAdminPassword()">Unlock Admin Panel</button>
-      <p id="attemptsLeft" style="color:red; margin-top:10px;"></p>
-    </div>
-
-    <div id="adminPanel" style="display:none;">
-      <h3>Withdraw Earnings</h3>
-      <input type="text" id="bankName" placeholder="Bank Name">
-      <input type="text" id="accountNumber" placeholder="Account Number">
-      <input type="text" id="ifscCode" placeholder="IFSC Code">
-      <input type="number" id="withdrawAmount" placeholder="Withdraw Amount ₹">
-      <button onclick="requestWithdraw()">Request Withdraw</button>
-
-      <hr style="margin:20px 0;">
-
-      <h3>Change System Password</h3>
-      <input type="password" id="newPassword" placeholder="Enter New System Password">
-      <button onclick="changePassword()">Change Password</button>
-    </div>
+    <input type="password" id="newPassword" placeholder="Enter New System Password">
+    <button onclick="changePassword()">Change Password</button>
   </div>
 
 </div>
