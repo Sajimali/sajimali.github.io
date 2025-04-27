@@ -2,58 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sajku1 Store - Dashboard</title>
-  <link rel="stylesheet" href="styles.css"> <!-- Add your CSS file -->
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-storage-compat.js"></script>
-</head>
-<body>
-  <!-- Your dashboard HTML content here -->
-  <h1>Welcome to Sajku1 Store Dashboard</h1>
-  <div id="profile">
-    <h2>Your Profile</h2>
-    <img id="profile-pic" src="" alt="Profile Picture">
-    <p id="user-name"></p>
-    <button onclick="changeProfilePic()">Change Picture</button>
-    <button onclick="changeUserName()">Change Name</button>
-  </div>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sajku1 Dashboard</title>
 
-  <!-- Upload/Download Section -->
-  <div id="app-upload">
-    <h2>Upload Your App</h2>
-    <input type="file" id="apk-file" accept=".apk">
-    <input type="text" id="app-name" placeholder="App Name">
-    <textarea id="app-description" placeholder="App Description"></textarea>
-    <input type="file" id="app-screenshot" accept="image/*">
-    <input type="text" id="admob-banner" placeholder="AdMob Banner Code">
-    <input type="text" id="admob-interstitial" placeholder="AdMob Interstitial Code">
-    <input type="text" id="admob-rewarded" placeholder="AdMob Rewarded Code">
-    <input type="text" id="admob-native" placeholder="AdMob Native Code">
-    <input type="text" id="admob-appopen" placeholder="AdMob App Open Code">
-    <button onclick="uploadApp()">Upload</button>
-  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getDatabase, ref as dbRef, set as dbSet, onValue, update as dbUpdate } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
 
-  <div id="user-earnings">
-    <h2>Your Earnings</h2>
-    <div id="total-earnings"></div>
-  </div>
-
-  <div id="admin-section">
-    <h2>Admin Section (Password Protected)</h2>
-    <input type="password" id="admin-password" placeholder="Enter Admin Password">
-    <button onclick="unlockAdmin()">Unlock Admin</button>
-    <div id="system-earnings">
-      <h3>System Earnings</h3>
-      <div id="system-earnings-details"></div>
-    </div>
-  </div>
-
-  <!-- Firebase Config -->
-  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
@@ -64,85 +22,275 @@
       measurementId: "G-BDH8FP9R56",
       databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const storage = firebase.storage();
-  </script>
 
-  <!-- Firebase Authentication and Database Logic -->
-  <script>
-    firebase.auth().onAuthStateChanged(user => {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore();
+    const rtdb = getDatabase();
+    const storage = getStorage();
+
+    let adminPassword = "admin123";
+
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        localStorage.setItem("userID", user.uid);
-        // Fetch user profile data
-        db.collection("users").doc(user.uid).get().then(doc => {
-          document.getElementById('user-name').innerText = doc.data().name;
-          document.getElementById('profile-pic').src = doc.data().photoURL;
-        });
+        document.getElementById('userName').innerText = user.displayName || "No Name";
+        document.getElementById('userPhoto').src = user.photoURL || "https://via.placeholder.com/150";
+        fetchEarnings(user.uid);
+        fetchUploads(user.uid);
+      } else {
+        window.location.href = "login.html";
       }
     });
 
-    function changeProfilePic() {
-      // Logic to change profile picture
-    }
+    window.updateProfileData = async () => {
+      const name = document.getElementById('nameInput').value;
+      const photo = document.getElementById('photoInput').files[0];
+      const user = auth.currentUser;
+      if (!user) return;
 
-    function changeUserName() {
-      // Logic to change user name
-    }
+      if (photo) {
+        const photoRef = storageRef(storage, `profilePics/${user.uid}`);
+        await uploadBytes(photoRef, photo);
+        const photoURL = await getDownloadURL(photoRef);
+        await updateProfile(user, { displayName: name, photoURL });
+        await updateDoc(doc(db, "users", user.uid), { name, photoURL });
+        document.getElementById('userName').innerText = name;
+        document.getElementById('userPhoto').src = photoURL;
+      } else {
+        await updateProfile(user, { displayName: name });
+        await updateDoc(doc(db, "users", user.uid), { name });
+        document.getElementById('userName').innerText = name;
+      }
+      alert("Profile Updated!");
+    };
 
-    function uploadApp() {
-      const appName = document.getElementById("app-name").value;
-      const appDescription = document.getElementById("app-description").value;
-      const apkFile = document.getElementById("apk-file").files[0];
-      const screenshot = document.getElementById("app-screenshot").files[0];
-      const admobBanner = document.getElementById("admob-banner").value || "ca-app-pub-5534254536913287/6837788351";
-      const admobInterstitial = document.getElementById("admob-interstitial").value || "ca-app-pub-5534254536913287/6044824702";
-      const admobRewarded = document.getElementById("admob-rewarded").value || "ca-app-pub-5534254536913287/7212596405";
-      const admobNative = document.getElementById("admob-native").value || "ca-app-pub-5534254536913287/3273351397";
-      const admobAppOpen = document.getElementById("admob-appopen").value || "ca-app-pub-5534254536913287/7021024718";
+    window.uploadApp = async () => {
+      const appName = document.getElementById('appName').value;
+      const description = document.getElementById('appDesc').value;
+      const screenshots = document.getElementById('appScreenshots').files;
+      const video = document.getElementById('appVideo').files[0];
+      const apk = document.getElementById('appApk').files[0];
+      const admob = {
+        banner: document.getElementById('bannerAd').value || "ca-app-pub-5534254536913287/6837788351",
+        interstitial: document.getElementById('interstitialAd').value || "ca-app-pub-5534254536913287/6044824702",
+        rewarded: document.getElementById('rewardedAd').value || "ca-app-pub-5534254536913287/7212596405",
+        native: document.getElementById('nativeAd').value || "ca-app-pub-5534254536913287/3273351397",
+        appOpen: document.getElementById('appOpenAd').value || "ca-app-pub-5534254536913287/7021024718"
+      };
 
-      // Upload APK to Firebase Storage
-      const storageRef = storage.ref('apps/' + appName + '.apk');
-      storageRef.put(apkFile).then(snapshot => {
-        storageRef.getDownloadURL().then(url => {
-          // Save app details in Firestore
-          db.collection("apps").add({
-            appName: appName,
-            description: appDescription,
-            apkUrl: url,
-            screenshots: screenshot ? screenshot.name : "no-screenshot",
-            admobBanner: admobBanner,
-            admobInterstitial: admobInterstitial,
-            admobRewarded: admobRewarded,
-            admobNative: admobNative,
-            admobAppOpen: admobAppOpen,
-            uploaderId: firebase.auth().currentUser.uid
-          }).then(() => {
-            alert("App uploaded successfully!");
-          }).catch(error => {
-            alert("Error uploading app: " + error.message);
-          });
-        });
+      if (!appName || !description || screenshots.length === 0 || !apk) {
+        alert("Please fill all fields!");
+        return;
+      }
+
+      const user = auth.currentUser;
+      const appDoc = await addDoc(collection(db, "apps"), {
+        uploader: user.uid,
+        appName,
+        description,
+        approved: false,
+        createdAt: new Date(),
+        admob
+      });
+
+      const uploads = [];
+
+      for (let i = 0; i < screenshots.length; i++) {
+        const file = screenshots[i];
+        const sRef = storageRef(storage, `apps/${appDoc.id}/screenshot${i}.jpg`);
+        uploads.push(uploadBytes(sRef, file));
+      }
+
+      if (video) {
+        const vRef = storageRef(storage, `apps/${appDoc.id}/video.mp4`);
+        uploads.push(uploadBytes(vRef, video));
+      }
+
+      const apkRef = storageRef(storage, `apps/${appDoc.id}/app.apk`);
+      uploads.push(uploadBytes(apkRef, apk));
+
+      await Promise.all(uploads);
+      alert("App Uploaded Successfully!");
+    };
+
+    window.requestWithdraw = async () => {
+      const amount = document.getElementById('withdrawAmount').value;
+      const user = auth.currentUser;
+      if (!user || !amount || amount <= 0) {
+        alert("Invalid Withdraw Amount");
+        return;
+      }
+      await addDoc(collection(db, "withdraws"), {
+        userId: user.uid,
+        amount,
+        requestedAt: new Date()
+      });
+      alert("Withdraw Request Submitted!");
+    };
+
+    async function fetchEarnings(uid) {
+      onValue(dbRef(rtdb, `earnings/${uid}`), (snapshot) => {
+        const data = snapshot.val() || { uploader: 0, downloader: 0, system: 0 };
+        document.getElementById('uploaderEarning').innerText = `${data.uploader} ₹`;
+        document.getElementById('downloaderEarning').innerText = `${data.downloader} ₹`;
+        document.getElementById('systemEarning').innerText = `${data.system} ₹`;
       });
     }
 
-    function unlockAdmin() {
-      const password = document.getElementById("admin-password").value;
-      if (password === "admin123") {
-        document.getElementById("system-earnings").style.display = "block";
-        // Fetch system earnings
-        db.collection("systemEarnings").get().then(snapshot => {
-          snapshot.forEach(doc => {
-            document.getElementById("system-earnings-details").innerText = "Total System Earnings: " + doc.data().totalEarnings;
-          });
+    async function fetchUploads(uid) {
+      onSnapshot(collection(db, "apps"), (snapshot) => {
+        const uploads = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.uploader === uid) {
+            uploads.push(data.appName);
+          }
         });
-      } else {
-        alert("Incorrect password");
-      }
+        document.getElementById('uploadedApps').innerText = uploads.join(", ") || "No Apps Uploaded.";
+      });
     }
+
+    window.changeAdminPassword = () => {
+      const oldPass = document.getElementById('oldAdminPass').value;
+      const newPass = document.getElementById('newAdminPass').value;
+      if (oldPass === adminPassword) {
+        adminPassword = newPass;
+        alert("Password Changed Successfully!");
+      } else {
+        alert("Wrong Old Password!");
+      }
+    };
+
+    window.transferBank = () => {
+      const amount = document.getElementById('bankAmount').value;
+      if (amount && amount > 0) {
+        alert(`Bank Transfer Request of ₹${amount} sent successfully.`);
+      } else {
+        alert("Enter valid amount!");
+      }
+    };
+
+    window.logout = () => {
+      signOut(auth);
+    };
   </script>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #2193b0, #6dd5ed);
+      margin: 0;
+      padding: 0;
+      color: white;
+    }
+    .dashboard {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+    .box {
+      background: white;
+      color: black;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      padding: 20px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+    }
+    .box h2 {
+      margin-top: 0;
+    }
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #2193b0;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #6dd5ed;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+  <div class="box" id="profileBox">
+    <h2>Profile</h2>
+    <img id="userPhoto" class="profile-img" src="https://via.placeholder.com/150" alt="User Photo">
+    <h3 id="userName">Loading...</h3>
+    <input type="text" id="nameInput" placeholder="Enter Name">
+    <input type="file" id="photoInput">
+    <button onclick="updateProfileData()">Update Profile</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="box">
+    <h2>Earnings</h2>
+    <p>Uploader Earnings: <span id="uploaderEarning">0 ₹</span></p>
+    <p>Downloader Earnings: <span id="downloaderEarning">0 ₹</span></p>
+    <p>System Earnings: <span id="systemEarning">0 ₹</span></p>
+  </div>
+
+  <div class="box">
+    <h2>Uploaded Apps</h2>
+    <p id="uploadedApps">Loading...</p>
+  </div>
+
+  <div class="box">
+    <h2>Upload New App</h2>
+    <input type="text" id="appName" placeholder="App Name">
+    <textarea id="appDesc" placeholder="App Description"></textarea>
+    <input type="file" id="appScreenshots" multiple accept="image/*">
+    <input type="file" id="appVideo" accept="video/mp4">
+    <input type="file" id="appApk" accept=".apk">
+    <h4>AdMob Codes (Optional)</h4>
+    <input type="text" id="bannerAd" placeholder="Banner Ad ID">
+    <input type="text" id="interstitialAd" placeholder="Interstitial Ad ID">
+    <input type="text" id="rewardedAd" placeholder="Rewarded Ad ID">
+    <input type="text" id="nativeAd" placeholder="Native Ad ID">
+    <input type="text" id="appOpenAd" placeholder="App Open Ad ID">
+    <button onclick="uploadApp()">Upload App</button>
+  </div>
+
+  <div class="box">
+    <h2>Withdraw Earnings</h2>
+    <input type="number" id="withdrawAmount" placeholder="Amount ₹">
+    <button onclick="requestWithdraw()">Request Withdraw</button>
+  </div>
+
+  <div class="box">
+    <h2>Admin Panel (Locked)</h2>
+    <input type="password" id="oldAdminPass" placeholder="Old Password">
+    <input type="password" id="newAdminPass" placeholder="New Password">
+    <button onclick="changeAdminPassword()">Change Password</button>
+    <br><br>
+    <input type="number" id="bankAmount" placeholder="Bank Transfer Amount ₹">
+    <button onclick="transferBank()">Transfer To Bank</button>
+  </div>
+
+</div>
+
 </body>
 </html>
+
 
         
 
