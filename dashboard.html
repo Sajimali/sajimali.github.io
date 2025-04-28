@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sajku1 Dashboard - Full System (Updated)</title>
+  <title>Sajku1 Dashboard - Final Updated</title>
 
   <!-- Firebase Scripts -->
   <script type="module">
-    // Firebase Imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
@@ -31,7 +30,6 @@
     const rtdb = getDatabase();
     const storage = getStorage();
 
-    // Admin password
     let systemPassword = "";
     let passwordAttempts = 0;
     let systemBlocked = false;
@@ -44,7 +42,6 @@
     }
     getSystemPassword();
 
-    // User Session
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById('userName').innerText = user.displayName || "No Name";
@@ -56,7 +53,6 @@
       }
     });
 
-    // Profile Update
     window.updateProfileData = async () => {
       const name = document.getElementById('nameInput').value;
       const photo = document.getElementById('photoInput').files[0];
@@ -79,40 +75,37 @@
       alert("Profile Updated Successfully!");
     };
 
-    // Upload New App
     window.uploadApp = async () => {
-      const appName = document.getElementById('appName').value;
-      const description = document.getElementById('appDesc').value;
+      const appName = document.getElementById('appName').value.trim();
+      const description = document.getElementById('appDesc').value.trim();
       const screenshots = document.getElementById('appScreenshots').files;
       const video = document.getElementById('appVideo').files[0];
       const apk = document.getElementById('appApk').files[0];
-      const admob = {
-        banner: document.getElementById('bannerAd').value || "ca-app-pub-5534254536913287/6837788351",
-        interstitial: document.getElementById('interstitialAd').value || "ca-app-pub-5534254536913287/6044824702",
-        rewarded: document.getElementById('rewardedAd').value || "ca-app-pub-5534254536913287/7212596405",
-        native: document.getElementById('nativeAd').value || "ca-app-pub-5534254536913287/3273351397",
-        appOpen: document.getElementById('appOpenAd').value || "ca-app-pub-5534254536913287/7021024718"
-      };
+      const user = auth.currentUser;
 
-      if (!appName || !description || screenshots.length === 0 || !apk) {
-        return alert("Fill all fields correctly before Upload!");
+      if (!user || !appName || !description || screenshots.length === 0 || !apk) {
+        return alert("Please fill all required fields.");
       }
 
-      const user = auth.currentUser;
+      const bannerAd = document.getElementById('bannerAd').value || "ca-app-pub-5534254536913287/6837788351";
+      const interstitialAd = document.getElementById('interstitialAd').value || "ca-app-pub-5534254536913287/6044824702";
+      const rewardedAd = document.getElementById('rewardedAd').value || "ca-app-pub-5534254536913287/7212596405";
+      const nativeAd = document.getElementById('nativeAd').value || "ca-app-pub-5534254536913287/3273351397";
+      const appOpenAd = document.getElementById('appOpenAd').value || "ca-app-pub-5534254536913287/7021024718";
+
       const appDoc = await addDoc(collection(db, "apps"), {
         uploader: user.uid,
         appName,
         description,
-        admob,
+        admob: { banner: bannerAd, interstitial: interstitialAd, rewarded: rewardedAd, native: nativeAd, appOpen: appOpenAd },
         createdAt: new Date(),
         approved: false
       });
 
       const uploads = [];
       for (let i = 0; i < screenshots.length; i++) {
-        const file = screenshots[i];
         const sRef = storageRef(storage, `apps/${appDoc.id}/screenshot${i}.jpg`);
-        uploads.push(uploadBytes(sRef, file));
+        uploads.push(uploadBytes(sRef, screenshots[i]));
       }
 
       if (video) {
@@ -127,7 +120,6 @@
       alert("App Uploaded Successfully! Waiting for Admin Approval.");
     };
 
-    // Fetch Earnings
     let userEarnings = { uploader: 0, downloader: 0 };
     async function fetchEarnings(uid) {
       onValue(dbRef(rtdb, `earnings/${uid}`), (snapshot) => {
@@ -138,7 +130,6 @@
       });
     }
 
-    // Fetch Uploaded Apps
     async function fetchUploads(uid) {
       onSnapshot(collection(db, "apps"), (snapshot) => {
         const uploads = [];
@@ -152,29 +143,33 @@
       });
     }
 
-    // Open App
     window.openApp = (id) => {
       window.location.href = `view-app.html?id=${id}`;
     };
 
-    // Logout
     window.logout = () => {
       signOut(auth);
     };
 
-    // Withdraw Request (with earning check)
     window.requestWithdraw = async () => {
       const amount = Number(document.getElementById('withdrawAmount').value);
-      const bankName = document.getElementById('bankName').value;
-      const accountNumber = document.getElementById('accountNumber').value;
-      const ifscCode = document.getElementById('ifscCode').value;
+      const bankName = document.getElementById('bankName').value.trim();
+      const accountNumber = document.getElementById('accountNumber').value.trim();
+      const ifscCode = document.getElementById('ifscCode').value.trim();
+      const proofPhoto = document.getElementById('proofPhoto').files[0];
       const user = auth.currentUser;
-      if (!user || amount <= 0) return alert("Invalid Withdraw Information!");
+      if (!user || amount <= 0 || !bankName || !accountNumber || !ifscCode || !proofPhoto) {
+        return alert("Please fill all fields and upload proof photo.");
+      }
 
       const totalEarning = userEarnings.uploader + userEarnings.downloader;
       if (amount > totalEarning) {
         return alert("Insufficient Balance!");
       }
+
+      const proofRef = storageRef(storage, `withdrawProofs/${user.uid}_${Date.now()}.jpg`);
+      await uploadBytes(proofRef, proofPhoto);
+      const proofURL = await getDownloadURL(proofRef);
 
       await addDoc(collection(db, "withdraws"), {
         userId: user.uid,
@@ -182,16 +177,16 @@
         bankName,
         accountNumber,
         ifscCode,
+        proofPhotoURL: proofURL,
         requestedAt: new Date()
       });
 
-      alert("Withdraw Request Submitted Successfully!");
+      alert("Withdraw Request Submitted Successfully with Proof!");
     };
 
-    // Admin Password Change (with blocking system)
     window.changePassword = async () => {
       if (systemBlocked) {
-        return alert("System permanently blocked due to multiple wrong password attempts.");
+        return alert("System permanently blocked due to wrong password attempts.");
       }
       const enteredPassword = prompt("Enter System Password:");
       if (enteredPassword !== systemPassword) {
@@ -200,12 +195,12 @@
           systemBlocked = true;
           alert("System permanently blocked!");
         } else {
-          alert("Wrong Password! Attempts Left: " + (3 - passwordAttempts));
+          alert("Wrong Password! Attempts left: " + (3 - passwordAttempts));
         }
         return;
       }
-      const newPassword = document.getElementById('newPassword').value;
-      if (!newPassword) return alert("Enter a New Password!");
+      const newPassword = document.getElementById('newPassword').value.trim();
+      if (!newPassword) return alert("Please enter a new password.");
       await setDoc(doc(db, "admin", "password"), { pass: newPassword });
       systemPassword = newPassword;
       passwordAttempts = 0;
@@ -213,7 +208,6 @@
     };
   </script>
 
-  <!-- CSS Styles -->
   <style>
     body {
       background: linear-gradient(135deg, #2193b0, #6dd5ed);
@@ -234,9 +228,7 @@
       border-radius: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
-    h2 {
-      color: #2193b0;
-    }
+    h2 { color: #2193b0; }
     input, textarea, button {
       width: 100%;
       margin-top: 10px;
@@ -260,10 +252,7 @@
       border-radius: 50%;
       margin-bottom: 15px;
     }
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
+    ul { list-style-type: none; padding: 0; }
     .warning {
       background-color: red;
       color: white;
@@ -277,15 +266,11 @@
 </head>
 
 <body>
-
 <div class="dashboard">
-
-  <!-- Warning Box -->
   <div class="warning">
-    Shear Shayari ya System ke sath chhedkhani karoge to ID permanently ban ho sakti hai.
+    System ya Account ka misuse karoge to ID block ho sakti hai.
   </div>
 
-  <!-- Profile Section -->
   <div class="box">
     <h2>Profile Settings</h2>
     <img id="userPhoto" class="profile-img" src="https://via.placeholder.com/150" alt="Profile Photo"><br>
@@ -296,14 +281,12 @@
     <button onclick="logout()">Logout</button>
   </div>
 
-  <!-- Earnings Section -->
   <div class="box">
     <h2>Earnings Overview</h2>
     <p>Uploader Earnings: <span id="uploaderEarning">0 ₹</span></p>
     <p>Downloader Earnings: <span id="downloaderEarning">0 ₹</span></p>
   </div>
 
-  <!-- Upload New App -->
   <div class="box">
     <h2>Upload New App</h2>
     <input type="text" id="appName" placeholder="App Name">
@@ -311,7 +294,7 @@
     <input type="file" id="appScreenshots" multiple accept="image/*">
     <input type="file" id="appVideo" accept="video/mp4">
     <input type="file" id="appApk" accept=".apk">
-    <h4>AdMob Codes (Optional)</h4>
+    <h4>Optional: Enter AdMob IDs</h4>
     <input type="text" id="bannerAd" placeholder="Banner Ad ID">
     <input type="text" id="interstitialAd" placeholder="Interstitial Ad ID">
     <input type="text" id="rewardedAd" placeholder="Rewarded Ad ID">
@@ -320,31 +303,27 @@
     <button onclick="uploadApp()">Upload App</button>
   </div>
 
-  <!-- Withdraw Earnings -->
   <div class="box">
     <h2>Withdraw Earnings</h2>
     <input type="text" id="bankName" placeholder="Bank Name">
     <input type="text" id="accountNumber" placeholder="Account Number">
     <input type="text" id="ifscCode" placeholder="IFSC Code">
     <input type="number" id="withdrawAmount" placeholder="Withdraw Amount ₹">
+    <input type="file" id="proofPhoto" accept="image/*">
     <button onclick="requestWithdraw()">Request Withdraw</button>
   </div>
 
-  <!-- Uploaded Apps -->
   <div class="box">
     <h2>My Uploaded Apps</h2>
     <ul id="uploadedApps">Loading...</ul>
   </div>
 
-  <!-- Admin System Lock Panel -->
   <div class="box">
     <h2>Admin System Lock</h2>
     <input type="password" id="newPassword" placeholder="Enter New System Password">
     <button onclick="changePassword()">Change Password</button>
   </div>
-
 </div>
-
 </body>
 </html>
 
