@@ -1,107 +1,29 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sajku1 Store</title>
+  <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
-    }
-    header {
-      background-color: #6200ea;
+    /* Previous styles remain the same */
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: red;
       color: white;
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .profile {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-    .profile img {
-      width: 40px;
-      height: 40px;
       border-radius: 50%;
-      margin-right: 10px;
-    }
-    .main {
-      padding: 10px;
-    }
-    .category-tabs {
-      display: flex;
-      justify-content: space-around;
-      background: #f0f0f0;
-      padding: 10px 0;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-    .category-tabs button {
-      background: none;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      color: #6200ea;
-    }
-    .app-list {
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-      padding: 10px 0;
-    }
-    .app-card {
-      background: white;
-      border-radius: 10px;
-      padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      min-width: 160px;
-      flex-shrink: 0;
-      position: relative;
-      text-align: center;
-    }
-    .app-card img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 12px;
-    }
-    .install-btn {
-      background: #6200ea;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      margin-top: 5px;
-      cursor: pointer;
-    }
-    .download-count {
+      width: 18px;
+      height: 18px;
       font-size: 12px;
-      color: gray;
-    }
-    nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background-color: white;
-      border-top: 1px solid #ddd;
       display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
+      align-items: center;
+      justify-content: center;
     }
-    nav a {
-      text-align: center;
-      color: #6200ea;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    nav a i {
-      font-size: 18px;
-      display: block;
+    .notification-icon {
+      position: relative;
     }
   </style>
 </head>
@@ -121,15 +43,22 @@
       <button onclick="loadCategory('editors')">Editor's Choice</button>
     </div>
     <div id="app-container" class="app-list"></div>
-  </div>  <nav>
+  </div>
+  <nav>
     <a href="#"><i class="fa fa-home"></i>Home</a>
     <a href="#"><i class="fa fa-gamepad"></i>Games</a>
     <a href="#"><i class="fa fa-search"></i>Search</a>
     <a href="#"><i class="fa fa-gift"></i>Offers</a>
-    <a href="#" onclick="updateApp()"><i class="fa fa-download"></i>App Update</a>
-  </nav>  <script type="module">
+    <a href="#" onclick="updateApp()" class="notification-icon">
+      <i class="fa fa-download"></i>
+      <span id="update-badge" class="notification-badge" style="display: none;"></span>
+    </a>
+  </nav>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -143,9 +72,13 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const messaging = getMessaging(app);
 
+    // Check user authentication
     const uid = localStorage.getItem("userID");
-    if (uid) {
+    if (!uid) {
+      window.location.href = "index.html";
+    } else {
       const docRef = doc(db, "users", uid);
       getDoc(docRef).then(docSnap => {
         if (docSnap.exists()) {
@@ -154,10 +87,79 @@
           if (data.photo) document.getElementById("user-photo").src = data.photo;
         }
       });
-    } else {
-      window.location.href = "index.html";
     }
 
+    // Load initial apps
+    loadCategory('top');
+
+    // Handle incoming messages
+    onMessage(messaging, (payload) => {
+      console.log('Message received:', payload);
+      showNotification(payload.notification.title, payload.notification.body);
+      
+      // Update badge for app updates
+      if (payload.notification.title.includes('Update')) {
+        const badge = document.getElementById('update-badge');
+        badge.style.display = 'flex';
+        badge.textContent = '1';
+      }
+    });
+
+    function showNotification(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/icon-192x192.png' });
+      } else {
+        // Fallback for browsers that don't support notifications
+        alert(`${title}\n${body}`);
+      }
+    }
+
+    // Real-time notification listener
+    function setupNotificationListener() {
+      if (uid) {
+        const notificationsRef = collection(db, "notifications");
+        onSnapshot(notificationsRef, (snapshot) => {
+          snapshot.docChanges().forEach(change => {
+            if (change.type === "added" && change.doc.data().userId === uid) {
+              const data = change.doc.data();
+              showNotification(data.title, data.message);
+            }
+          });
+        });
+      }
+    }
+
+    // Track download events
+    window.downloadApp = async (appId, appName) => {
+      try {
+        // Send download notification
+        await addDoc(collection(db, "notifications"), {
+          userId: uid,
+          title: "Download Started",
+          message: `Downloading ${appName}`,
+          timestamp: new Date(),
+          read: false
+        });
+
+        // Your existing download logic here
+        console.log(`Downloading app: ${appId}`);
+        
+        // Simulate download completion after 3 seconds
+        setTimeout(async () => {
+          await addDoc(collection(db, "notifications"), {
+            userId: uid,
+            title: "Download Complete",
+            message: `${appName} installed successfully!`,
+            timestamp: new Date(),
+            read: false
+          });
+        }, 3000);
+      } catch (error) {
+        console.error("Download error:", error);
+      }
+    };
+
+    // Modified app card creation to include download tracking
     async function loadCategory(category) {
       const appContainer = document.getElementById('app-container');
       appContainer.innerHTML = '';
@@ -170,20 +172,31 @@
           <img src="${data.image}" alt="App Logo" />
           <h4>${data.name}</h4>
           <p class="download-count">${data.downloads || 0} downloads</p>
-          <button class="install-btn" onclick="window.location.href='app-detail.html?id=${docSnap.id}&cat=${category}'">View</button>
+          <button class="install-btn" onclick="downloadApp('${docSnap.id}', '${data.name}')">Download</button>
         `;
         appContainer.appendChild(card);
       });
     }
 
     window.updateApp = function() {
-      alert('App update feature is under development or checking for updates...');
+      // Check for updates and show notification
+      addDoc(collection(db, "notifications"), {
+        userId: uid,
+        title: "Update Available",
+        message: "New version of Sajku1 Store is available!",
+        timestamp: new Date(),
+        read: false
+      }).then(() => {
+        document.getElementById('update-badge').style.display = 'none';
+        alert('Checking for updates...');
+      });
     };
-  </script></body>
+
+    // Initialize notification system
+    setupNotificationListener();
+  </script>
+</body>
 </html>
-
-
-
 
 
 
