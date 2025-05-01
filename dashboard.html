@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sajku1 Dashboard - Final Updated</title>
-
+  <link rel="manifest" href="/manifest.json">
   <!-- Firebase Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
@@ -12,6 +12,7 @@
     import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getDatabase, ref as dbRef, set as dbSet, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+    import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -29,6 +30,15 @@
     const db = getFirestore();
     const rtdb = getDatabase();
     const storage = getStorage();
+    let messaging;
+
+    // Initialize Firebase Messaging if supported
+    (async () => {
+      if (await isSupported()) {
+        messaging = getMessaging(app);
+        initFCM();
+      }
+    })();
 
     let systemPassword = "";
     let passwordAttempts = 0;
@@ -42,16 +52,70 @@
     }
     getSystemPassword();
 
+    // FCM Initialization
+    async function initFCM() {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          const currentToken = await getToken(messaging, { 
+            vapidKey: 'BE480YruByxBzIc6J_6YLquolt0b3difUjIQJD1_VrLJ4xbH15Ya72xNAy9k25enW8WoSFYM6IFtUH3JgWNiS0'
+          });
+          if (currentToken && auth.currentUser) {
+            await setDoc(doc(db, "fcm_tokens", auth.currentUser.uid), {
+              token: currentToken,
+              createdAt: new Date()
+            });
+          }
+        }
+
+        onMessage(messaging, (payload) => {
+          console.log('Message received:', payload);
+          showNotification(
+            payload.notification.title || 'New Notification',
+            payload.notification.body || 'You have a new update'
+          );
+        });
+      } catch (error) {
+        console.error('FCM Error:', error);
+      }
+    }
+
+    function showNotification(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { 
+          body, 
+          icon: '/icon-192x192.png',
+          vibrate: [200, 100, 200]
+        });
+      } else {
+        // Fallback for browsers that don't support notifications
+        alert(`${title}\n${body}`);
+      }
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById('userName').innerText = user.displayName || "No Name";
         document.getElementById('userPhoto').src = user.photoURL || "https://via.placeholder.com/150";
         fetchEarnings(user.uid);
         fetchUploads(user.uid);
+        setupNotificationListener(user.uid);
       } else {
         window.location.href = "login.html";
       }
     });
+
+    function setupNotificationListener(uid) {
+      const notificationsRef = collection(db, "notifications");
+      onSnapshot(notificationsRef, (snapshot) => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === "added" && change.doc.data().userId === uid) {
+            const data = change.doc.data();
+            showNotification(data.title, data.message);
+          }
+        });
+      });
+    }
 
     window.updateProfileData = async () => {
       const name = document.getElementById('nameInput').value;
@@ -59,20 +123,32 @@
       const user = auth.currentUser;
       if (!user) return alert("User Not Found!");
 
-      if (photo) {
-        const photoRef = storageRef(storage, `profilePics/${user.uid}`);
-        await uploadBytes(photoRef, photo);
-        const photoURL = await getDownloadURL(photoRef);
-        await updateProfile(user, { displayName: name, photoURL });
-        await updateDoc(doc(db, "users", user.uid), { name, photoURL });
-        document.getElementById('userName').innerText = name;
-        document.getElementById('userPhoto').src = photoURL;
-      } else {
-        await updateProfile(user, { displayName: name });
-        await updateDoc(doc(db, "users", user.uid), { name });
-        document.getElementById('userName').innerText = name;
+      try {
+        if (photo) {
+          const photoRef = storageRef(storage, `profilePics/${user.uid}`);
+          await uploadBytes(photoRef, photo);
+          const photoURL = await getDownloadURL(photoRef);
+          await updateProfile(user, { displayName: name, photoURL });
+          await updateDoc(doc(db, "users", user.uid), { name, photoURL });
+          document.getElementById('userName').innerText = name;
+          document.getElementById('userPhoto').src = photoURL;
+        } else {
+          await updateProfile(user, { displayName: name });
+          await updateDoc(doc(db, "users", user.uid), { name });
+          document.getElementById('userName').innerText = name;
+        }
+        
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "Profile Updated",
+          message: "Your profile has been successfully updated",
+          timestamp: new Date()
+        });
+        
+        alert("Profile Updated Successfully!");
+      } catch (error) {
+        alert("Error updating profile: " + error.message);
       }
-      alert("Profile Updated Successfully!");
     };
 
     window.uploadApp = async () => {
@@ -87,37 +163,54 @@
         return alert("Please fill all required fields.");
       }
 
-      const bannerAd = document.getElementById('bannerAd').value || "ca-app-pub-5534254536913287/6837788351";
-      const interstitialAd = document.getElementById('interstitialAd').value || "ca-app-pub-5534254536913287/6044824702";
-      const rewardedAd = document.getElementById('rewardedAd').value || "ca-app-pub-5534254536913287/7212596405";
-      const nativeAd = document.getElementById('nativeAd').value || "ca-app-pub-5534254536913287/3273351397";
-      const appOpenAd = document.getElementById('appOpenAd').value || "ca-app-pub-5534254536913287/7021024718";
+      try {
+        const bannerAd = document.getElementById('bannerAd').value || "ca-app-pub-5534254536913287/6837788351";
+        const interstitialAd = document.getElementById('interstitialAd').value || "ca-app-pub-5534254536913287/6044824702";
+        const rewardedAd = document.getElementById('rewardedAd').value || "ca-app-pub-5534254536913287/7212596405";
+        const nativeAd = document.getElementById('nativeAd').value || "ca-app-pub-5534254536913287/3273351397";
+        const appOpenAd = document.getElementById('appOpenAd').value || "ca-app-pub-5534254536913287/7021024718";
 
-      const appDoc = await addDoc(collection(db, "apps"), {
-        uploader: user.uid,
-        appName,
-        description,
-        admob: { banner: bannerAd, interstitial: interstitialAd, rewarded: rewardedAd, native: nativeAd, appOpen: appOpenAd },
-        createdAt: new Date(),
-        approved: false
-      });
+        const appDoc = await addDoc(collection(db, "apps"), {
+          uploader: user.uid,
+          appName,
+          description,
+          admob: { banner: bannerAd, interstitial: interstitialAd, rewarded: rewardedAd, native: nativeAd, appOpen: appOpenAd },
+          createdAt: new Date(),
+          approved: false,
+          status: "uploading"
+        });
 
-      const uploads = [];
-      for (let i = 0; i < screenshots.length; i++) {
-        const sRef = storageRef(storage, `apps/${appDoc.id}/screenshot${i}.jpg`);
-        uploads.push(uploadBytes(sRef, screenshots[i]));
+        const uploads = [];
+        for (let i = 0; i < screenshots.length; i++) {
+          const sRef = storageRef(storage, `apps/${appDoc.id}/screenshot${i}.jpg`);
+          uploads.push(uploadBytes(sRef, screenshots[i]));
+        }
+
+        if (video) {
+          const vRef = storageRef(storage, `apps/${appDoc.id}/video.mp4`);
+          uploads.push(uploadBytes(vRef, video));
+        }
+
+        const apkRef = storageRef(storage, `apps/${appDoc.id}/app.apk`);
+        uploads.push(uploadBytes(apkRef, apk));
+
+        await Promise.all(uploads);
+        
+        await updateDoc(doc(db, "apps", appDoc.id), { status: "pending_approval" });
+        
+        // Send notification
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "App Uploaded",
+          message: `${appName} has been uploaded and is pending approval`,
+          timestamp: new Date(),
+          appId: appDoc.id
+        });
+
+        alert("App Uploaded Successfully! Waiting for Admin Approval.");
+      } catch (error) {
+        alert("Error uploading app: " + error.message);
       }
-
-      if (video) {
-        const vRef = storageRef(storage, `apps/${appDoc.id}/video.mp4`);
-        uploads.push(uploadBytes(vRef, video));
-      }
-
-      const apkRef = storageRef(storage, `apps/${appDoc.id}/app.apk`);
-      uploads.push(uploadBytes(apkRef, apk));
-
-      await Promise.all(uploads);
-      alert("App Uploaded Successfully! Waiting for Admin Approval.");
     };
 
     let userEarnings = { uploader: 0, downloader: 0 };
@@ -127,6 +220,16 @@
         userEarnings = data;
         document.getElementById('uploaderEarning').innerText = `${data.uploader} ₹`;
         document.getElementById('downloaderEarning').innerText = `${data.downloader} ₹`;
+        
+        // Send earning update notification if changed
+        if (data.uploader > 0 || data.downloader > 0) {
+          addDoc(collection(db, "notifications"), {
+            userId: uid,
+            title: "Earnings Updated",
+            message: `Your current balance: Uploader ₹${data.uploader} | Downloader ₹${data.downloader}`,
+            timestamp: new Date()
+          });
+        }
       });
     }
 
@@ -136,10 +239,32 @@
         snapshot.forEach(doc => {
           const data = doc.data();
           if (data.uploader === uid) {
-            uploads.push(`<li>${data.appName} - <button onclick="openApp('${doc.id}')">Open</button></li>`);
+            const statusBadge = data.approved ? 
+              '<span style="color:green">✓ Approved</span>' : 
+              '<span style="color:orange">⏳ Pending</span>';
+            
+            uploads.push(`
+              <li style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+                <strong>${data.appName}</strong> - ${statusBadge}
+                <div style="margin-top: 5px;">
+                  <button onclick="openApp('${doc.id}')" style="background: #2193b0;">Open</button>
+                  <input type="text" id="interstitialAppId" placeholder="Interstitial Ad ID" value="${data.admob.interstitial}" style="width: 60%;">
+                  <button id="loadInterstitial" style="width: 35%;">Load Ad</button>
+                </div>
+                ${data.status === 'approved' ? 
+                  `<p style="color:green; margin-top:5px;">✓ Ready for downloads</p>` : ''}
+              </li>
+            `);
           }
         });
         document.getElementById('uploadedApps').innerHTML = uploads.join("") || "No Apps Uploaded.";
+        
+        document.querySelectorAll("#loadInterstitial").forEach(btn => {
+          btn.addEventListener("click", function() {
+            const appId = this.parentNode.querySelector("#interstitialAppId").value;
+            alert(`Interstitial Ad Loaded for ${appId}`);
+          });
+        });
       });
     }
 
@@ -148,7 +273,9 @@
     };
 
     window.logout = () => {
-      signOut(auth);
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      });
     };
 
     window.requestWithdraw = async () => {
@@ -158,6 +285,7 @@
       const ifscCode = document.getElementById('ifscCode').value.trim();
       const proofPhoto = document.getElementById('proofPhoto').files[0];
       const user = auth.currentUser;
+      
       if (!user || amount <= 0 || !bankName || !accountNumber || !ifscCode || !proofPhoto) {
         return alert("Please fill all fields and upload proof photo.");
       }
@@ -167,21 +295,34 @@
         return alert("Insufficient Balance!");
       }
 
-      const proofRef = storageRef(storage, `withdrawProofs/${user.uid}_${Date.now()}.jpg`);
-      await uploadBytes(proofRef, proofPhoto);
-      const proofURL = await getDownloadURL(proofRef);
+      try {
+        const proofRef = storageRef(storage, `withdrawProofs/${user.uid}_${Date.now()}.jpg`);
+        await uploadBytes(proofRef, proofPhoto);
+        const proofURL = await getDownloadURL(proofRef);
 
-      await addDoc(collection(db, "withdraws"), {
-        userId: user.uid,
-        amount,
-        bankName,
-        accountNumber,
-        ifscCode,
-        proofPhotoURL: proofURL,
-        requestedAt: new Date()
-      });
+        await addDoc(collection(db, "withdraws"), {
+          userId: user.uid,
+          amount,
+          bankName,
+          accountNumber,
+          ifscCode,
+          proofPhotoURL: proofURL,
+          requestedAt: new Date(),
+          status: "pending"
+        });
 
-      alert("Withdraw Request Submitted Successfully with Proof!");
+        // Send notification
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "Withdrawal Requested",
+          message: `Your withdrawal request of ₹${amount} has been submitted`,
+          timestamp: new Date()
+        });
+
+        alert("Withdraw Request Submitted Successfully with Proof!");
+      } catch (error) {
+        alert("Error processing withdrawal: " + error.message);
+      }
     };
 
     window.changePassword = async () => {
@@ -262,70 +403,147 @@
       margin-bottom: 20px;
       font-weight: bold;
     }
+    .upload-guidelines {
+      background:linear-gradient(to right, #e3f2fd, #bbdefb);
+      padding:20px 25px;
+      border-left:6px solid #1976d2;
+      border-radius:12px;
+      box-shadow:0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom:25px;
+      font-family:sans-serif;
+    }
+    .upload-guidelines h2 {
+      color:#0d47a1;
+      margin-top:0;
+    }
+    .upload-guidelines ul {
+      padding-left:20px;
+      margin:15px 0;
+      line-height:1.8;
+      color:#212121;
+    }
+    #notification-bell {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff5722;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    #notification-count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
 
 <body>
-<div class="dashboard">
-  <div class="warning">
-    System ya Account ka misuse karoge to ID block ho sakti hai.
+  <div id="notification-bell" onclick="showNotifications()">
+    <i class="fas fa-bell"></i>
+    <span id="notification-count" style="display: none;">0</span>
   </div>
 
-  <div class="box">
-    <h2>Profile Settings</h2>
-    <img id="userPhoto" class="profile-img" src="https://via.placeholder.com/150" alt="Profile Photo"><br>
-    <h3 id="userName">Loading...</h3>
-    <input type="text" id="nameInput" placeholder="Enter Your Name">
-    <input type="file" id="photoInput">
-    <button onclick="updateProfileData()">Update Profile</button>
-    <button onclick="logout()">Logout</button>
+  <div class="dashboard">
+    <div class="warning">
+      System ya Account ka misuse karoge to ID block ho sakti hai.
+    </div>
+
+    <div class="box">
+      <h2>Profile Settings</h2>
+      <img id="userPhoto" class="profile-img" src="https://via.placeholder.com/150" alt="Profile Photo"><br>
+      <h3 id="userName">Loading...</h3>
+      <input type="text" id="nameInput" placeholder="Enter Your Name">
+      <input type="file" id="photoInput">
+      <button onclick="updateProfileData()">Update Profile</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="box">
+      <h2>Earnings Overview</h2>
+      <p>Uploader Earnings: <span id="uploaderEarning">0 ₹</span></p>
+      <p>Downloader Earnings: <span id="downloaderEarning">0 ₹</span></p>
+    </div>
+
+    <div class="box">
+      <h2>Upload New App</h2>
+      <input type="text" id="appName" placeholder="App Name">
+      <textarea id="appDesc" placeholder="App Description"></textarea>
+      <input type="file" id="appScreenshots" multiple accept="image/*">
+      <input type="file" id="appVideo" accept="video/mp4">
+      <input type="file" id="appApk" accept=".apk">
+      <h4>Optional: Enter AdMob IDs</h4>
+      <input type="text" id="bannerAd" placeholder="Banner Ad ID">
+      <input type="text" id="interstitialAd" placeholder="Interstitial Ad ID">
+      <input type="text" id="rewardedAd" placeholder="Rewarded Ad ID">
+      <input type="text" id="nativeAd" placeholder="Native Ad ID">
+      <input type="text" id="appOpenAd" placeholder="App Open Ad ID">
+      <button onclick="uploadApp()">Upload App</button>
+    </div>
+
+    <div class="box">
+      <h2>Withdraw Earnings</h2>
+      <input type="text" id="bankName" placeholder="Bank Name">
+      <input type="text" id="accountNumber" placeholder="Account Number">
+      <input type="text" id="ifscCode" placeholder="IFSC Code">
+      <input type="number" id="withdrawAmount" placeholder="Withdraw Amount ₹">
+      <input type="file" id="proofPhoto" accept="image/*">
+      <button onclick="requestWithdraw()">Request Withdraw</button>
+    </div>
+
+    <div class="box">
+      <h2>My Uploaded Apps</h2>
+      <div class="upload-guidelines">
+        <h2>Upload Guidelines (जरूरी जानकारी)</h2>
+        <ul>
+          <li>सिर्फ अपनी बनाई हुई या पूरी तरह से अधिकृत (authorized) ऐप ही अपलोड करें।</li>
+          <li>कोई भी अवैध, एडल्ट, हैकिंग, कॉपीराइटेड या सरकारी नियमों के विरुद्ध ऐप अपलोड करने पर अकाउंट स्थायी रूप से बैन किया जा सकता है।</li>
+          <li>अगर आप Google AdMob के 5 कोड नहीं भरते, तो सिस्टम खुद का डिफॉल्ट AdMob कोड लगाएगी।</li>
+          <li>ऐसी स्थिति में भी आपकी कमाई (Upload: 65%, Download: 15%) आपको मिलती रहेगी। सिस्टम सिर्फ अपना हिस्सा (20%) लेगी।</li>
+          <li>अपलोड करने से पहले कृपया सभी शर्तों को ध्यानपूर्वक पढ़ें और सहमति दें।</li>
+        </ul>
+      </div>
+      <ul id="uploadedApps">Loading...</ul>
+    </div>
+
+    <div class="box">
+      <h2>Admin System Lock</h2>
+      <input type="password" id="newPassword" placeholder="Enter New System Password">
+      <button onclick="changePassword()">Change Password</button>
+    </div>
   </div>
 
-  <div class="box">
-    <h2>Earnings Overview</h2>
-    <p>Uploader Earnings: <span id="uploaderEarning">0 ₹</span></p>
-    <p>Downloader Earnings: <span id="downloaderEarning">0 ₹</span></p>
-  </div>
-
-  <div class="box">
-    <h2>Upload New App</h2>
-    <input type="text" id="appName" placeholder="App Name">
-    <textarea id="appDesc" placeholder="App Description"></textarea>
-    <input type="file" id="appScreenshots" multiple accept="image/*">
-    <input type="file" id="appVideo" accept="video/mp4">
-    <input type="file" id="appApk" accept=".apk">
-    <h4>Optional: Enter AdMob IDs</h4>
-    <input type="text" id="bannerAd" placeholder="Banner Ad ID">
-    <input type="text" id="interstitialAd" placeholder="Interstitial Ad ID">
-    <input type="text" id="rewardedAd" placeholder="Rewarded Ad ID">
-    <input type="text" id="nativeAd" placeholder="Native Ad ID">
-    <input type="text" id="appOpenAd" placeholder="App Open Ad ID">
-    <button onclick="uploadApp()">Upload App</button>
-  </div>
-
-  <div class="box">
-    <h2>Withdraw Earnings</h2>
-    <input type="text" id="bankName" placeholder="Bank Name">
-    <input type="text" id="accountNumber" placeholder="Account Number">
-    <input type="text" id="ifscCode" placeholder="IFSC Code">
-    <input type="number" id="withdrawAmount" placeholder="Withdraw Amount ₹">
-    <input type="file" id="proofPhoto" accept="image/*">
-    <button onclick="requestWithdraw()">Request Withdraw</button>
-  </div>
-
-  <div class="box">
-    <h2>My Uploaded Apps</h2>
-    <ul id="uploadedApps">Loading...</ul>
-  </div>
-
-  <div class="box">
-    <h2>Admin System Lock</h2>
-    <input type="password" id="newPassword" placeholder="Enter New System Password">
-    <button onclick="changePassword()">Change Password</button>
-  </div>
-</div>
-</body>
-</html>
+  <script>
+    // Notification bell functionality
+    async function showNotifications() {
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      const notificationsRef = collection(db, "notifications");
+      const querySnapshot = await getDocs(query(notificationsRef, where("userId", "==", user.uid), orderBy("timestamp", "desc"), limit(10));
+      
+      let notificationHTML = '<h2>Your Notifications</h2><ul>';
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        notificationHTML += `<li><strong>${data.title}</strong><br>${data.message}</li>`;
+     
 
 
         
