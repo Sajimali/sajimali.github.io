@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up | Sajku1</title>
+  <link rel="manifest" href="/manifest.json">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -41,10 +42,22 @@
     hr {
       margin: 20px 0;
     }
+    #notification-permission {
+      background: #f1c40f;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div id="notification-permission">
+      Allow notifications to get real-time updates about your apps and earnings.
+      <button onclick="requestNotificationPermission()">Allow</button>
+    </div>
+    
     <h3>Yahi aapka real ID hai, isse aap paisa kama sakte hain</h3>
     <h2>Sign Up</h2>
     <input type="text" id="name" placeholder="Full Name" required>
@@ -65,6 +78,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -79,14 +93,61 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const messaging = getMessaging(app);
 
+    // Check notification permission on load
     window.addEventListener('load', () => {
       const uid = localStorage.getItem("userID");
       if (uid) {
         window.location.href = "home.html";
       }
+      checkNotificationPermission();
     });
 
+    // Notification permission functions
+    function checkNotificationPermission() {
+      if (Notification.permission === 'default') {
+        document.getElementById('notification-permission').style.display = 'block';
+      }
+    }
+
+    window.requestNotificationPermission = async () => {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        document.getElementById('notification-permission').style.display = 'none';
+        await setupFCMToken();
+      }
+    };
+
+    async function setupFCMToken() {
+      try {
+        const currentToken = await getToken(messaging, { 
+          vapidKey: 'BE480YruByxBzIc6J_6YLquolt0b3difUjIQJD1_VrLJ4xbH15Ya72xNAy9k25enW8WoSFYM6IFtUH3JgWNiS0' 
+        });
+        if (currentToken) {
+          console.log('FCM Token:', currentToken);
+        }
+      } catch (error) {
+        console.error('FCM Error:', error);
+      }
+    }
+
+    // Handle incoming messages
+    onMessage(messaging, (payload) => {
+      console.log('Message received:', payload);
+      showNotification(payload.notification.title, payload.notification.body);
+    });
+
+    function showNotification(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/icon-192x192.png' });
+      } else {
+        // Fallback for browsers that don't support notifications
+        alert(`${title}\n${body}`);
+      }
+    }
+
+    // User signup function
     window.signUpUser = async () => {
       const name = document.getElementById("name").value;
       const username = document.getElementById("username").value;
@@ -107,6 +168,12 @@
             appOpen: "ca-app-pub-5534254536913287/7021024718"
           }
         });
+        
+        // Save FCM token after signup
+        if (Notification.permission === 'granted') {
+          await setupFCMToken();
+        }
+        
         localStorage.setItem("userID", uid);
         window.location.href = "home.html";
       } catch (e) {
@@ -114,6 +181,7 @@
       }
     };
 
+    // User login function
     window.loginUser = async () => {
       const email = document.getElementById("loginEmail").value;
       const password = document.getElementById("loginPassword").value;
@@ -121,6 +189,12 @@
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
+        
+        // Save FCM token after login
+        if (Notification.permission === 'granted') {
+          await setupFCMToken();
+        }
+        
         localStorage.setItem("userID", uid);
         window.location.href = "home.html";
       } catch (e) {
@@ -130,13 +204,6 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
