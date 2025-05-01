@@ -7,23 +7,216 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Previous styles remain the same */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: white;
+    }
+    header {
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 10;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(to right, #ff00cc, #3333ff);
+      opacity: 0.7;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .profile:hover {
+      transform: scale(1.05);
+    }
+    .profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    .main {
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      min-height: calc(100vh - 150px);
+    }
+    .category-tabs {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px 0;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .category-tabs button {
+      background: none;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      transition: all 0.3s;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    .category-tabs button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    .category-tabs button:active {
+      transform: translateY(0);
+    }
+    .app-list {
+      display: flex;
+      overflow-x: auto;
+      gap: 15px;
+      padding: 15px 5px;
+      scrollbar-width: thin;
+      scrollbar-color: #8e2de2 #302b63;
+    }
+    .app-list::-webkit-scrollbar {
+      height: 8px;
+    }
+    .app-list::-webkit-scrollbar-track {
+      background: #302b63;
+      border-radius: 10px;
+    }
+    .app-list::-webkit-scrollbar-thumb {
+      background: #8e2de2;
+      border-radius: 10px;
+    }
+    .app-card {
+      background: linear-gradient(145deg, #1e1e3f, #2a2a5a);
+      border-radius: 15px;
+      padding: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      min-width: 180px;
+      flex-shrink: 0;
+      position: relative;
+      text-align: center;
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .app-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
+    }
+    .app-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      margin-bottom: 10px;
+    }
+    .app-card h4 {
+      margin: 10px 0;
+      color: #fff;
+      font-size: 16px;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+    .download-count {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 10px;
+    }
+    .install-btn {
+      background: linear-gradient(to right, #ff00cc, #3333ff);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      margin-top: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+    .install-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+    .install-btn:active {
+      transform: translateY(0);
+    }
+    nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(to right, #8e2de2, #4a00e0);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+    }
+    nav a {
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s;
+      padding: 5px 10px;
+      border-radius: 20px;
+    }
+    nav a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+    }
+    nav a i {
+      font-size: 18px;
+      display: block;
+      margin-bottom: 5px;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
     .notification-badge {
       position: absolute;
       top: -5px;
       right: -5px;
-      background-color: red;
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
       color: white;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       font-size: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 0 10px rgba(255, 65, 108, 0.7);
+      animation: pulse 1.5s infinite;
     }
     .notification-icon {
       position: relative;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
@@ -55,6 +248,7 @@
     </a>
   </nav>
 
+  <!-- Rest of your JavaScript code remains exactly the same -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
