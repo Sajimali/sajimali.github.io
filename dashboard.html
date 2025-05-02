@@ -291,11 +291,31 @@
 
     window.logout = async () => {
       try {
+        // 1. Firebase se properly sign out
         await signOut(auth);
-        window.location.href = "index.html";
+        
+        // 2. Smart redirect logic for all cases
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1';
+        
+        let redirectUrl;
+        
+        if(isLocalhost) {
+          redirectUrl = 'index.html';
+        } 
+        else if(window.location.host === 'sajku1.github.io') {
+          redirectUrl = 'https://sajku1.github.io/index.html';
+        }
+        else {
+          redirectUrl = '/index.html';
+        }
+        
+        // 3. Cache busting and force reload
+        window.location.href = redirectUrl + '?t=' + Date.now();
+        
       } catch (error) {
-        console.error("Logout error:", error);
-        window.location.href = "index.html";
+        // 4. Ultimate fallback
+        window.location.replace('https://sajku1.github.io/index.html');
       }
     };
 
@@ -667,3 +687,5 @@
   </script>
 </body>
 </html>
+      
+      
