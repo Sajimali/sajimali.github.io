@@ -289,14 +289,8 @@
       window.location.href = `view-app.html?id=${id}`;
     };
 
-    window.logout = async () => {
-      try {
-        await signOut(auth);
-        window.location.href = "index.html";
-      } catch (error) {
-        console.error("Logout error:", error);
-        window.location.href = "index.html";
-      }
+    window.logout = () => {
+      window.location.href = "index.html";
     };
 
     window.goToHome = () => {
@@ -565,9 +559,9 @@
       <input type="text" id="nameInput" placeholder="Enter Your Name">
       <input type="file" id="photoInput">
       <button onclick="updateProfileData()">Update Profile</button>
-      <button onclick="logout()" style="background: #f44336;">Logout</button>
-      <button onclick="goToHome()" style="background: #4CAF50; margin-top: 10px;">Go to Home Page</button
-        </div>
+      <button onclick="logout()">Logout</button>
+      <button onclick="goToHome()" style="background: #4CAF50; margin-top: 10px;">Go to Home Page</button>
+    </div>
 
     <div class="box">
       <h2>Earnings Overview</h2>
@@ -666,7 +660,8 @@
     }, 60000);
   </script>
 </body>
-  </html>
+</html>
+      
 
 
   
