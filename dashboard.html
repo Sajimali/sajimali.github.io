@@ -8,7 +8,7 @@
   <!-- Firebase Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getDatabase, ref as dbRef, set as dbSet, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
@@ -289,6 +289,16 @@
       window.location.href = `view-app.html?id=${id}`;
     };
 
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error("Logout error:", error);
+        window.location.href = "index.html";
+      }
+    };
+
     window.goToHome = () => {
       window.location.href = "home.html";
     };
@@ -555,6 +565,7 @@
       <input type="text" id="nameInput" placeholder="Enter Your Name">
       <input type="file" id="photoInput">
       <button onclick="updateProfileData()">Update Profile</button>
+      <button onclick="logout()" style="background: #f44336;">Logout</button>
       <button onclick="goToHome()" style="background: #4CAF50; margin-top: 10px;">Go to Home Page</button>
     </div>
 
