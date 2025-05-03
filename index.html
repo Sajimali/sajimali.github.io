@@ -76,7 +76,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
@@ -199,6 +199,17 @@
         window.location.href = "home.html";
       } catch (e) {
         alert("Login failed: " + e.message);
+      }
+    };
+
+    // Logout function
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        window.location.href = 'https://sajku1.github.io/index.html';
+      } catch (error) {
+        window.location.replace('https://sajku1.github.io/index.html');
       }
     };
   </script>
