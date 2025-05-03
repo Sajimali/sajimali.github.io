@@ -231,9 +231,26 @@
       z-index: 1000;
       font-weight: bold;
     }
+    .auth-check {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #4a00e0;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      z-index: 1001;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
+  <div class="auth-check" id="auth-check">
+    Checking authentication...
+  </div>
+  
   <div class="offline-message" id="offline-message">
     You are offline. Please connect to the internet to use Sajku1 Store.
   </div>
@@ -266,6 +283,9 @@
   </nav>
 
   <script type="module">
+    // Show auth check message
+    document.getElementById('auth-check').style.display = 'block';
+    
     // Check internet connection first
     if (!navigator.onLine) {
       document.getElementById('offline-message').style.display = 'block';
@@ -273,10 +293,10 @@
       document.querySelectorAll('.category-tabs button').forEach(btn => {
         btn.disabled = true;
       });
-      throw new Error('No internet connection');
     }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
@@ -291,30 +311,47 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
     const messaging = getMessaging(app);
 
-    // Check user authentication
+    // Combined authentication check
     const uid = localStorage.getItem("userID");
     if (!uid) {
-      window.location.href = "index.html";
+      // Clear any existing data
+      localStorage.clear();
+      window.location.replace('https://sajku1.github.io/index.html');
     } else {
-      const docRef = doc(db, "users", uid);
-      getDoc(docRef).then(docSnap => {
+      // Verify with Firebase
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          localStorage.removeItem("userID");
+          window.location.replace('https://sajku1.github.io/index.html');
+        } else {
+          // User is authenticated, load their data
+          document.getElementById('auth-check').style.display = 'none';
+          loadUserData(uid);
+          loadCategory('top');
+          setupNotificationListener();
+        }
+      });
+    }
+
+    async function loadUserData(uid) {
+      try {
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
           document.getElementById("user-name").textContent = data.name;
           if (data.photo) document.getElementById("user-photo").src = data.photo;
         }
-      }).catch(error => {
+      } catch (error) {
         console.error("Error fetching user data:", error);
         document.getElementById('offline-message').style.display = 'block';
         document.getElementById('offline-message').textContent = 'Failed to connect to server. Please check your internet connection.';
-      });
+      }
     }
-
-    // Load initial apps
-    loadCategory('top');
 
     // Handle incoming messages
     onMessage(messaging, (payload) => {
@@ -340,6 +377,7 @@
 
     // Real-time notification listener
     function setupNotificationListener() {
+      const uid = localStorage.getItem("userID");
       if (uid) {
         const notificationsRef = collection(db, "notifications");
         onSnapshot(notificationsRef, (snapshot) => {
@@ -357,6 +395,12 @@
     window.downloadApp = async (appId, appName) => {
       if (!navigator.onLine) {
         alert('Internet connection required to download apps');
+        return;
+      }
+      
+      const uid = localStorage.getItem("userID");
+      if (!uid) {
+        alert('Please login to download apps');
         return;
       }
       
@@ -432,6 +476,12 @@
         return;
       }
       
+      const uid = localStorage.getItem("userID");
+      if (!uid) {
+        alert('Please login to check for updates');
+        return;
+      }
+      
       // Check for updates and show notification
       addDoc(collection(db, "notifications"), {
         userId: uid,
@@ -448,13 +498,13 @@
       });
     };
 
-    // Initialize notification system
-    setupNotificationListener();
-
     // Online/offline detection
     window.addEventListener('online', () => {
       document.getElementById('offline-message').style.display = 'none';
-      loadCategory('top'); // Reload when connection is restored
+      const uid = localStorage.getItem("userID");
+      if (uid) {
+        loadCategory('top'); // Reload when connection is restored
+      }
     });
     
     window.addEventListener('offline', () => {
