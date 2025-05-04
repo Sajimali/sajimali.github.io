@@ -9,7 +9,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getDatabase, ref as dbRef, set as dbSet, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
     import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
@@ -108,22 +108,36 @@
       }
     }
 
-    // Combined auth state handler
+    // Combined auth state handler with Realtime Database check
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User logged in - show dashboard
-        document.getElementById('content').style.display = 'block';
-        document.getElementById('userName').innerText = user.displayName || "No Name";
-        document.getElementById('userPhoto').src = user.photoURL || "https://via.placeholder.com/150";
-        fetchEarnings(user.uid);
-        fetchUploads(user.uid);
-        setupNotificationListener(user.uid);
-      } else {
-        // User logged out - clear cache and go to index
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.replace('https://sajku1.github.io/index.html');
+      if (!user) {
+        alert("Please login first");
+        localStorage.removeItem("userID");
+        window.location.href = "index.html";
+        return;
       }
+
+      // Get user data from Realtime Database
+      get(ref(rtdb, 'users/' + user.uid))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            // User logged in - show dashboard
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('userName').innerText = data.name || "No Name";
+            document.getElementById('userPhoto').src = data.photo || "https://via.placeholder.com/150";
+            fetchEarnings(user.uid);
+            fetchUploads(user.uid);
+            setupNotificationListener(user.uid);
+          } else {
+            console.log("No user data available");
+          }
+        })
+        .catch((error) => {
+          console.error("Permission denied:", error);
+          document.getElementById('offline-message').style.display = 'block';
+          document.getElementById('offline-message').textContent = 'Failed to connect to server. Please check your internet connection.';
+        });
     });
 
     function setupNotificationListener(uid) {
