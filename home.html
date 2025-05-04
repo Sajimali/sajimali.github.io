@@ -285,31 +285,32 @@
     // Show auth check message
     document.getElementById('auth-check').style.display = 'block';
     
-    // Check internet connection first
+    // 1. नेटवर्क चेक फंक्शन को मजबूत बनाया
     function checkNetwork() {
       const offlineMsg = document.getElementById('offline-message');
       const appContainer = document.getElementById('app-container');
       
       if (!navigator.onLine) {
         offlineMsg.style.display = 'block';
-        appContainer.innerHTML = '<p style="text-align:center;width:100%;">Internet connection required to load apps</p>';
+        appContainer.innerHTML = '<p style="text-align:center;width:100%;color:#ff4b2b;">⚠️ No Internet Connection</p>';
         document.querySelectorAll('.category-tabs button').forEach(btn => {
           btn.disabled = true;
+          btn.style.opacity = '0.5';
         });
       } else {
         offlineMsg.style.display = 'none';
-        // Firebase से डेटा लोड करने का कोड यहाँ चले
-        const uid = localStorage.getItem("userID");
-        if (uid) loadCategory('top');
+        if (localStorage.getItem("userID")) loadCategory('top');
       }
     }
-    
-    // Initial network check
-    checkNetwork();
-    
-    // Network change detection
-    window.addEventListener('online', checkNetwork);
-    window.addEventListener('offline', checkNetwork);
+
+    // 2. पेज लोड पर तुरंत चेक (DOMContentLoaded इवेंट पर)
+    document.addEventListener('DOMContentLoaded', () => {
+      checkNetwork();
+      
+      // 3. इवेंट लिसनर्स को सही तरीके से रजिस्टर करना
+      window.addEventListener('online', checkNetwork);
+      window.addEventListener('offline', checkNetwork);
+    });
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
