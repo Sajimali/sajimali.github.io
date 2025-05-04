@@ -228,7 +228,7 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      display: none; /* शुरुआत में छिपा रहे */
+      display: none;
     }
     .auth-check {
       display: none;
@@ -285,7 +285,7 @@
     // Show auth check message
     document.getElementById('auth-check').style.display = 'block';
     
-    // 1. नेटवर्क चेक फंक्शन को मजबूत बनाया
+    // Network check function
     function checkNetwork() {
       const offlineMsg = document.getElementById('offline-message');
       const appContainer = document.getElementById('app-container');
@@ -303,19 +303,18 @@
       }
     }
 
-    // 2. पेज लोड पर तुरंत चेक (DOMContentLoaded इवेंट पर)
+    // Check network on page load
     document.addEventListener('DOMContentLoaded', () => {
       checkNetwork();
-      
-      // 3. इवेंट लिसनर्स को सही तरीके से रजिस्टर करना
       window.addEventListener('online', checkNetwork);
       window.addEventListener('offline', checkNetwork);
     });
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc, get, ref } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getMessaging, onMessage, getToken } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
@@ -330,30 +329,44 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const database = getDatabase(app);
     const messaging = getMessaging(app);
 
-    // Combined authentication check
-    const uid = localStorage.getItem("userID");
-    if (!uid) {
-      // Clear any existing data
-      localStorage.clear();
-      window.location.replace('https://sajku1.github.io/index.html');
-    } else {
-      // Verify with Firebase
-      onAuthStateChanged(auth, (user) => {
-        if (!user) {
-          localStorage.removeItem("userID");
-          window.location.replace('https://sajku1.github.io/index.html');
-        } else {
-          // User is authenticated, load their data
-          document.getElementById('auth-check').style.display = 'none';
-          loadUserData(uid);
-          loadCategory('top');
-          setupNotificationListener();
-        }
-      });
-    }
+    // Authentication check
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        alert("Please login first");
+        localStorage.removeItem("userID");
+        window.location.href = "index.html";
+        return;
+      }
 
+      // Get user data from Realtime Database
+      get(ref(database, 'users/' + user.uid))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById("user-name").textContent = data.name || "User";
+            if (data.photo) document.getElementById("user-photo").src = data.photo;
+            
+            // Hide auth check message
+            document.getElementById('auth-check').style.display = 'none';
+            
+            // Load initial content
+            loadCategory('top');
+            setupNotificationListener();
+          } else {
+            console.log("No user data available");
+          }
+        })
+        .catch((error) => {
+          console.error("Permission denied:", error);
+          document.getElementById('offline-message').style.display = 'block';
+          document.getElementById('offline-message').textContent = 'Failed to connect to server. Please check your internet connection.';
+        });
+    });
+
+    // Load user data from Firestore
     async function loadUserData(uid) {
       try {
         const docRef = doc(db, "users", uid);
@@ -392,7 +405,7 @@
       }
     }
 
-    // Real-time notification listener
+    // Setup notification listener
     function setupNotificationListener() {
       const uid = localStorage.getItem("userID");
       if (uid) {
@@ -453,9 +466,8 @@
     // Load apps function
     async function loadApps() {
       try {
-        const snapshot = await get(ref(db, 'top'));
+        const snapshot = await get(ref(database, 'top'));
         if (snapshot.exists()) {
-          // ऐप्स दिखाएं
           const appContainer = document.getElementById('app-container');
           appContainer.innerHTML = '';
           Object.entries(snapshot.val()).forEach(([key, data]) => {
@@ -480,7 +492,7 @@
       }
     }
 
-    // Modified app card creation to include download tracking
+    // Load category function
     async function loadCategory(category) {
       if (!navigator.onLine) {
         document.getElementById('offline-message').style.display = 'block';
@@ -517,6 +529,7 @@
       }
     }
 
+    // Update app function
     window.updateApp = function() {
       if (!navigator.onLine) {
         alert('Internet connection required to check for updates');
@@ -543,6 +556,17 @@
         console.error("Update check failed:", error);
         alert('Failed to check for updates. Please check your internet connection.');
       });
+    };
+
+    // Logout function
+    window.logout = async function() {
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        window.location.href = 'index.html';
+      } catch (error) {
+        window.location.replace('index.html');
+      }
     };
   </script>
 </body>
