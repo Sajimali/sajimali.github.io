@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -219,17 +219,16 @@
       100% { transform: scale(1); }
     }
     .offline-message {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
       background: #ff4b2b;
       color: white;
       text-align: center;
       padding: 10px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
       z-index: 1000;
-      font-weight: bold;
+      display: none; /* शुरुआत में छिपा रहे */
     }
     .auth-check {
       display: none;
@@ -287,17 +286,34 @@
     document.getElementById('auth-check').style.display = 'block';
     
     // Check internet connection first
-    if (!navigator.onLine) {
-      document.getElementById('offline-message').style.display = 'block';
-      document.getElementById('app-container').innerHTML = '<p style="text-align:center;width:100%;">Internet connection required to load apps</p>';
-      document.querySelectorAll('.category-tabs button').forEach(btn => {
-        btn.disabled = true;
-      });
+    function checkNetwork() {
+      const offlineMsg = document.getElementById('offline-message');
+      const appContainer = document.getElementById('app-container');
+      
+      if (!navigator.onLine) {
+        offlineMsg.style.display = 'block';
+        appContainer.innerHTML = '<p style="text-align:center;width:100%;">Internet connection required to load apps</p>';
+        document.querySelectorAll('.category-tabs button').forEach(btn => {
+          btn.disabled = true;
+        });
+      } else {
+        offlineMsg.style.display = 'none';
+        // Firebase से डेटा लोड करने का कोड यहाँ चले
+        const uid = localStorage.getItem("userID");
+        if (uid) loadCategory('top');
+      }
     }
+    
+    // Initial network check
+    checkNetwork();
+    
+    // Network change detection
+    window.addEventListener('online', checkNetwork);
+    window.addEventListener('offline', checkNetwork);
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc, get, ref } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
     const firebaseConfig = {
@@ -433,6 +449,36 @@
       }
     };
 
+    // Load apps function
+    async function loadApps() {
+      try {
+        const snapshot = await get(ref(db, 'top'));
+        if (snapshot.exists()) {
+          // ऐप्स दिखाएं
+          const appContainer = document.getElementById('app-container');
+          appContainer.innerHTML = '';
+          Object.entries(snapshot.val()).forEach(([key, data]) => {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.innerHTML = `
+              <img src="${data.image}" alt="App Logo" onerror="this.src='https://via.placeholder.com/80'" />
+              <h4>${data.name}</h4>
+              <p class="download-count">${data.downloads || 0} downloads</p>
+              <button class="install-btn" onclick="downloadApp('${key}', '${data.name}')">Download</button>
+            `;
+            appContainer.appendChild(card);
+          });
+        } else {
+          document.getElementById('app-container').innerHTML = 
+            '<p style="text-align:center;width:100%;">No apps found</p>';
+        }
+      } catch (error) {
+        console.error("Loading error:", error);
+        document.getElementById('app-container').innerHTML = 
+          '<p style="text-align:center;width:100%;color:red;">Failed to load apps. Server error.</p>';
+      }
+    }
+
     // Modified app card creation to include download tracking
     async function loadCategory(category) {
       if (!navigator.onLine) {
@@ -497,19 +543,6 @@
         alert('Failed to check for updates. Please check your internet connection.');
       });
     };
-
-    // Online/offline detection
-    window.addEventListener('online', () => {
-      document.getElementById('offline-message').style.display = 'none';
-      const uid = localStorage.getItem("userID");
-      if (uid) {
-        loadCategory('top'); // Reload when connection is restored
-      }
-    });
-    
-    window.addEventListener('offline', () => {
-      document.getElementById('offline-message').style.display = 'block';
-    });
   </script>
 </body>
 </html>
