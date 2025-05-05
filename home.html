@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sajku1 Store</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -83,9 +83,6 @@
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
-    .category-tabs button:active {
-      transform: translateY(0);
-    }
     .app-list {
       display: flex;
       overflow-x: auto;
@@ -112,8 +109,6 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
       min-width: 180px;
       flex-shrink: 0;
-      position: relative;
-      text-align: center;
       transition: all 0.3s;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
@@ -124,22 +119,9 @@
     .app-card img {
       width: 80px;
       height: 80px;
-      object-fit: cover;
       border-radius: 15px;
       border: 2px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      margin-bottom: 10px;
-    }
-    .app-card h4 {
-      margin: 10px 0;
-      color: #fff;
-      font-size: 16px;
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-    }
-    .download-count {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      margin-bottom: 10px;
     }
     .install-btn {
       background: linear-gradient(to right, #ff00cc, #3333ff);
@@ -147,52 +129,49 @@
       border: none;
       padding: 8px 15px;
       border-radius: 20px;
-      margin-top: 5px;
       cursor: pointer;
       font-weight: bold;
       transition: all 0.3s;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      text-transform: uppercase;
-      font-size: 12px;
-      letter-spacing: 1px;
-    }
-    .install-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-    }
-    .install-btn:active {
-      transform: translateY(0);
     }
     nav {
       position: fixed;
       bottom: 0;
       width: 100%;
       background: linear-gradient(to right, #8e2de2, #4a00e0);
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
       display: flex;
       justify-content: space-around;
       padding: 12px 0;
       box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
-      z-index: 100;
     }
     nav a {
-      text-align: center;
       color: white;
       text-decoration: none;
       font-size: 14px;
-      transition: all 0.3s;
-      padding: 5px 10px;
-      border-radius: 20px;
     }
-    nav a:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-3px);
+    .offline-message {
+      background: #ff4b2b;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: none;
     }
-    nav a i {
-      font-size: 18px;
-      display: block;
-      margin-bottom: 5px;
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    .auth-check {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #4a00e0;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      z-index: 1001;
+      font-weight: bold;
     }
     .notification-badge {
       position: absolute;
@@ -218,49 +197,20 @@
       50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
-    .offline-message {
-      background: #ff4b2b;
-      color: white;
-      text-align: center;
-      padding: 10px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      display: none;
-    }
-    .auth-check {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: #4a00e0;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      z-index: 1001;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
-  <div class="auth-check" id="auth-check">
-    Checking authentication...
-  </div>
-  
-  <div class="offline-message" id="offline-message">
-    You are offline. Please connect to the internet to use Sajku1 Store.
-  </div>
+  <div class="auth-check" id="auth-check">Checking authentication...</div>
+  <div class="offline-message" id="offline-message">You are offline. Please check internet.</div>
   
   <header>
     <h2>Sajku1 Store</h2>
-    <div class="profile" onclick="window.location.href='dashboard.html'">
-      <img id="user-photo" src="https://via.placeholder.com/40" alt="User Photo" />
-      <span id="user-name">User Name</span>
+    <div class="profile" id="profile-btn">
+      <img id="user-photo" src="https://via.placeholder.com/40" alt="User">
+      <span id="user-name">Loading...</span>
     </div>
   </header>
+
   <div class="main">
     <div class="category-tabs">
       <button onclick="loadCategory('top')">Top Apps</button>
@@ -270,304 +220,208 @@
     </div>
     <div id="app-container" class="app-list"></div>
   </div>
+
   <nav>
-    <a href="#"><i class="fa fa-home"></i>Home</a>
-    <a href="#"><i class="fa fa-gamepad"></i>Games</a>
-    <a href="#"><i class="fa fa-search"></i>Search</a>
-    <a href="#"><i class="fa fa-gift"></i>Offers</a>
+    <a href="#" class="active"><i class="fas fa-home"></i> Home</a>
+    <a href="#"><i class="fas fa-gamepad"></i> Games</a>
+    <a href="#"><i class="fas fa-search"></i> Search</a>
+    <a href="#"><i class="fas fa-gift"></i> Offers</a>
     <a href="#" onclick="updateApp()" class="notification-icon">
-      <i class="fa fa-download"></i>
+      <i class="fas fa-download"></i>
       <span id="update-badge" class="notification-badge" style="display: none;"></span>
     </a>
   </nav>
 
   <script type="module">
-    // Show auth check message
-    document.getElementById('auth-check').style.display = 'block';
-    
-    // Network check function
-    function checkNetwork() {
-      const offlineMsg = document.getElementById('offline-message');
-      const appContainer = document.getElementById('app-container');
-      
-      if (!navigator.onLine) {
-        offlineMsg.style.display = 'block';
-        appContainer.innerHTML = '<p style="text-align:center;width:100%;color:#ff4b2b;">⚠️ No Internet Connection</p>';
-        document.querySelectorAll('.category-tabs button').forEach(btn => {
-          btn.disabled = true;
-          btn.style.opacity = '0.5';
-        });
-      } else {
-        offlineMsg.style.display = 'none';
-        if (localStorage.getItem("userID")) loadCategory('top');
-      }
-    }
+    // Firebase Imports (v10+)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { 
+      getAuth, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+    import { 
+      getDatabase, 
+      ref, 
+      get,
+      set 
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    import { 
+      getMessaging, 
+      onMessage 
+    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-messaging.js";
 
-    // Check network on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      checkNetwork();
-      window.addEventListener('online', checkNetwork);
-      window.addEventListener('offline', checkNetwork);
-    });
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-    import { getMessaging, onMessage, getToken } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
-
+    // Firebase Config (Replace with yours)
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
+      databaseURL: "https://sajku-store-default-rdb.firebaseio.com",
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
+      appId: "1:831227140840:web:634cc6248ead6ab186075d"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
-    const database = getDatabase(app);
+    const db = getDatabase(app);
     const messaging = getMessaging(app);
 
-    // Authentication check
+    // 1. Authentication Check
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        alert("Please login first");
-        localStorage.removeItem("userID");
-        window.location.href = "index.html";
-        return;
+      const authCheck = document.getElementById('auth-check');
+      
+      if (user) {
+        authCheck.style.display = 'none';
+        loadUserData(user.uid);
+        loadCategory('top');
+        setupNotificationListener();
+      } else {
+        authCheck.textContent = "Redirecting to login...";
+        setTimeout(() => window.location.href = "login.html", 1500);
       }
-
-      // Get user data from Realtime Database
-      get(ref(database, 'users/' + user.uid))
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            document.getElementById("user-name").textContent = data.name || "User";
-            if (data.photo) document.getElementById("user-photo").src = data.photo;
-            
-            // Hide auth check message
-            document.getElementById('auth-check').style.display = 'none';
-            
-            // Load initial content
-            loadCategory('top');
-            setupNotificationListener();
-          } else {
-            console.log("No user data available");
-          }
-        })
-        .catch((error) => {
-          console.error("Permission denied:", error);
-          document.getElementById('offline-message').style.display = 'block';
-          document.getElementById('offline-message').textContent = 'Failed to connect to server. Please check your internet connection.';
-        });
     });
 
-    // Load user data from Firestore
+    // 2. Load User Data
     async function loadUserData(uid) {
       try {
-        const docRef = doc(db, "users", uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          document.getElementById("user-name").textContent = data.name;
-          if (data.photo) document.getElementById("user-photo").src = data.photo;
+        const snapshot = await get(ref(db, `users/${uid}`));
+        if (snapshot.exists()) {
+          const user = snapshot.val();
+          document.getElementById('user-name').textContent = user.name || "User";
+          if (user.photo) {
+            document.getElementById('user-photo').src = user.photo;
+          }
+          localStorage.setItem("userID", uid);
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
-        document.getElementById('offline-message').style.display = 'block';
-        document.getElementById('offline-message').textContent = 'Failed to connect to server. Please check your internet connection.';
+        console.error("User data error:", error);
       }
     }
 
-    // Handle incoming messages
-    onMessage(messaging, (payload) => {
-      console.log('Message received:', payload);
-      showNotification(payload.notification.title, payload.notification.body);
+    // 3. Load Apps by Category
+    async function loadCategory(category) {
+      const appContainer = document.getElementById('app-container');
       
-      // Update badge for app updates
-      if (payload.notification.title.includes('Update')) {
-        const badge = document.getElementById('update-badge');
-        badge.style.display = 'flex';
-        badge.textContent = '1';
-      }
-    });
+      try {
+        if (!navigator.onLine) {
+          throw new Error("No internet connection");
+        }
 
-    function showNotification(title, body) {
-      if (Notification.permission === 'granted') {
-        new Notification(title, { body, icon: '/icon-192x192.png' });
-      } else {
-        // Fallback for browsers that don't support notifications
-        alert(`${title}\n${body}`);
-      }
-    }
-
-    // Setup notification listener
-    function setupNotificationListener() {
-      const uid = localStorage.getItem("userID");
-      if (uid) {
-        const notificationsRef = collection(db, "notifications");
-        onSnapshot(notificationsRef, (snapshot) => {
-          snapshot.docChanges().forEach(change => {
-            if (change.type === "added" && change.doc.data().userId === uid) {
-              const data = change.doc.data();
-              showNotification(data.title, data.message);
-            }
-          });
-        });
+        appContainer.innerHTML = '<p style="text-align:center">Loading apps...</p>';
+        const snapshot = await get(ref(db, `apps/${category}`));
+        
+        if (snapshot.exists()) {
+          renderApps(snapshot.val());
+        } else {
+          appContainer.innerHTML = '<p style="text-align:center">No apps found</p>';
+        }
+      } catch (error) {
+        console.error("Load error:", error);
+        appContainer.innerHTML = `
+          <p style="text-align:center;color:#ff4b2b">
+            ${error.message.includes("offline") ? "Internet connection required" : "Failed to load apps"}
+          </p>
+        `;
+        document.getElementById('offline-message').style.display = 'block';
       }
     }
 
-    // Track download events
+    // 4. Render Apps
+    function renderApps(apps) {
+      const appContainer = document.getElementById('app-container');
+      appContainer.innerHTML = '';
+
+      Object.entries(apps).forEach(([id, app]) => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <img src="${app.image || 'https://via.placeholder.com/80'}" 
+               onerror="this.src='https://via.placeholder.com/80'">
+          <h4>${app.name}</h4>
+          <p class="download-count">${app.downloads || 0} downloads</p>
+          <button class="install-btn" onclick="downloadApp('${id}', '${app.name}')">
+            <i class="fas fa-download"></i> Install
+          </button>
+        `;
+        appContainer.appendChild(card);
+      });
+    }
+
+    // 5. Download App
     window.downloadApp = async (appId, appName) => {
       if (!navigator.onLine) {
-        alert('Internet connection required to download apps');
+        alert('Internet connection required');
         return;
       }
       
       const uid = localStorage.getItem("userID");
       if (!uid) {
-        alert('Please login to download apps');
+        alert('Please login first');
         return;
       }
       
       try {
-        // Send download notification
-        await addDoc(collection(db, "notifications"), {
-          userId: uid,
-          title: "Download Started",
-          message: `Downloading ${appName}`,
-          timestamp: new Date(),
-          read: false
-        });
-
-        // Your existing download logic here
-        console.log(`Downloading app: ${appId}`);
+        // Update download count
+        await set(ref(db, `apps/top/${appId}/downloads`), 
+          (await get(ref(db, `apps/top/${appId}/downloads`))).val() + 1);
         
-        // Simulate download completion after 3 seconds
-        setTimeout(async () => {
-          await addDoc(collection(db, "notifications"), {
-            userId: uid,
-            title: "Download Complete",
-            message: `${appName} installed successfully!`,
-            timestamp: new Date(),
-            read: false
-          });
-        }, 3000);
+        alert(`Downloading ${appName}...`);
       } catch (error) {
         console.error("Download error:", error);
-        alert('Download failed. Please check your internet connection.');
+        alert('Download failed. Please try again.');
       }
     };
 
-    // Load apps function
-    async function loadApps() {
-      try {
-        const snapshot = await get(ref(database, 'top'));
-        if (snapshot.exists()) {
-          const appContainer = document.getElementById('app-container');
-          appContainer.innerHTML = '';
-          Object.entries(snapshot.val()).forEach(([key, data]) => {
-            const card = document.createElement('div');
-            card.className = 'app-card';
-            card.innerHTML = `
-              <img src="${data.image}" alt="App Logo" onerror="this.src='https://via.placeholder.com/80'" />
-              <h4>${data.name}</h4>
-              <p class="download-count">${data.downloads || 0} downloads</p>
-              <button class="install-btn" onclick="downloadApp('${key}', '${data.name}')">Download</button>
-            `;
-            appContainer.appendChild(card);
-          });
-        } else {
-          document.getElementById('app-container').innerHTML = 
-            '<p style="text-align:center;width:100%;">No apps found</p>';
-        }
-      } catch (error) {
-        console.error("Loading error:", error);
-        document.getElementById('app-container').innerHTML = 
-          '<p style="text-align:center;width:100%;color:red;">Failed to load apps. Server error.</p>';
-      }
-    }
-
-    // Load category function
-    async function loadCategory(category) {
-      if (!navigator.onLine) {
-        document.getElementById('offline-message').style.display = 'block';
-        document.getElementById('app-container').innerHTML = '<p style="text-align:center;width:100%;">Internet connection required to load apps</p>';
-        return;
-      }
-      
-      const appContainer = document.getElementById('app-container');
-      appContainer.innerHTML = '<p style="text-align:center;width:100%;">Loading apps...</p>';
+    // 6. Update App
+    window.updateApp = async () => {
+      const badge = document.getElementById('update-badge');
+      badge.style.display = 'none';
       
       try {
-        const querySnapshot = await getDocs(collection(db, category));
-        if (querySnapshot.empty) {
-          appContainer.innerHTML = '<p style="text-align:center;width:100%;">No apps found in this category</p>';
-          return;
-        }
+        const uid = localStorage.getItem("userID");
+        if (!uid) throw new Error("Not logged in");
         
-        appContainer.innerHTML = '';
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const card = document.createElement('div');
-          card.className = 'app-card';
-          card.innerHTML = `
-            <img src="${data.image}" alt="App Logo" onerror="this.src='https://via.placeholder.com/80'" />
-            <h4>${data.name}</h4>
-            <p class="download-count">${data.downloads || 0} downloads</p>
-            <button class="install-btn" onclick="downloadApp('${docSnap.id}', '${data.name}')">Download</button>
-          `;
-          appContainer.appendChild(card);
-        });
+        alert("Checking for updates...");
+        // Add your update logic here
       } catch (error) {
-        console.error("Error loading apps:", error);
-        appContainer.innerHTML = '<p style="text-align:center;width:100%;color:red;">Failed to load apps. Please check your internet connection.</p>';
+        console.error("Update error:", error);
       }
-    }
-
-    // Update app function
-    window.updateApp = function() {
-      if (!navigator.onLine) {
-        alert('Internet connection required to check for updates');
-        return;
-      }
-      
-      const uid = localStorage.getItem("userID");
-      if (!uid) {
-        alert('Please login to check for updates');
-        return;
-      }
-      
-      // Check for updates and show notification
-      addDoc(collection(db, "notifications"), {
-        userId: uid,
-        title: "Update Available",
-        message: "New version of Sajku1 Store is available!",
-        timestamp: new Date(),
-        read: false
-      }).then(() => {
-        document.getElementById('update-badge').style.display = 'none';
-        alert('Checking for updates...');
-      }).catch(error => {
-        console.error("Update check failed:", error);
-        alert('Failed to check for updates. Please check your internet connection.');
-      });
     };
 
-    // Logout function
-    window.logout = async function() {
+    // 7. Notifications
+    function setupNotificationListener() {
+      onMessage(messaging, (payload) => {
+        console.log("Message received:", payload);
+        if (payload.notification.title.includes('Update')) {
+          const badge = document.getElementById('update-badge');
+          badge.style.display = 'flex';
+          badge.textContent = '1';
+        }
+        alert(`${payload.notification.title}\n${payload.notification.body}`);
+      });
+    }
+
+    // 8. Logout
+    window.logout = async () => {
       try {
         await signOut(auth);
         localStorage.clear();
-        window.location.href = 'index.html';
+        window.location.href = 'login.html';
       } catch (error) {
-        window.location.replace('index.html');
+        console.error("Logout error:", error);
       }
     };
+
+    // 9. Network Monitoring
+    window.addEventListener('online', () => {
+      document.getElementById('offline-message').style.display = 'none';
+    });
+
+    window.addEventListener('offline', () => {
+      document.getElementById('offline-message').style.display = 'block';
+    });
   </script>
 </body>
 </html>
