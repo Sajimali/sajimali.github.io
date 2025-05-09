@@ -130,7 +130,7 @@
   <!-- Firebase SDK (Non-module version for better compatibility) -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
 
   <script>
     // Firebase Configuration (Verified)
@@ -147,7 +147,7 @@
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.database();
+    const db = firebase.firestore();
 
     // Check Authentication State
     auth.onAuthStateChanged((user) => {
@@ -161,27 +161,30 @@
       }
     });
 
-    // Load Category Function (Fixed)
+    // Load Category Function (Updated for Firestore)
     function loadCategory(category) {
       const container = document.getElementById('apps-container');
       container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading apps...</div>';
 
-      db.ref('apps/' + category).once('value')
-        .then((snapshot) => {
-          const data = snapshot.val();
-          if (data) {
-            renderApps(data, category);
+      db.collection('apps').where('category', '==', category).get()
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const apps = {};
+            querySnapshot.forEach((doc) => {
+              apps[doc.id] = doc.data();
+            });
+            renderApps(apps, category);
           } else {
             container.innerHTML = '<div class="loading"><i class="fas fa-box-open"></i> No apps found</div>';
           }
         })
         .catch((error) => {
-          console.error("Firebase Error:", error);
+          console.error("Firestore Error:", error);
           container.innerHTML = '<div class="loading" style="color:red"><i class="fas fa-exclamation-triangle"></i> Error loading apps</div>';
         });
     }
 
-    // Render Apps Function (Fixed)
+    // Render Apps Function (Same as before)
     function renderApps(apps, category) {
       const container = document.getElementById('apps-container');
       container.innerHTML = '';
@@ -193,7 +196,7 @@
         card.innerHTML = `
           <h3>${app.name || 'Unnamed App'}</h3>
           <p>${app.description || 'No description available'}</p>
-          <button class="install-btn" onclick="downloadApp('${category}', '${appId}', '${app.name || 'App'}')">
+          <button class="install-btn" onclick="downloadApp('${appId}', '${app.name || 'App'}')">
             <i class="fas fa-download"></i> Install
           </button>
         `;
@@ -201,8 +204,8 @@
       }
     }
 
-    // Download App Function (Fixed)
-    window.downloadApp = function(category, appId, appName) {
+    // Download App Function (Updated for Firestore)
+    window.downloadApp = function(appId, appName) {
       if (!navigator.onLine) {
         alert('Internet connection required');
         return;
@@ -214,27 +217,30 @@
         return;
       }
 
-      // Get current downloads count
-      db.ref('apps/' + category + '/' + appId + '/downloads').once('value')
-        .then((snapshot) => {
-          const currentDownloads = snapshot.val() || 0;
-          // Update downloads count
-          return db.ref('apps/' + category + '/' + appId).update({
-            downloads: currentDownloads + 1
-          });
-        })
-        .then(() => {
-          alert(`Downloading ${appName}...`);
-        })
-        .catch((error) => {
-          console.error("Download error:", error);
-          alert('Download failed. Please try again.');
+      // Get the app document reference
+      const appRef = db.collection('apps').doc(appId);
+
+      // Run a transaction to increment the downloads count
+      db.runTransaction((transaction) => {
+        return transaction.get(appRef).then((doc) => {
+          if (!doc.exists) {
+            throw "Document does not exist!";
+          }
+          const currentDownloads = doc.data().downloads || 0;
+          transaction.update(appRef, { downloads: currentDownloads + 1 });
         });
+      })
+      .then(() => {
+        alert(`Downloading ${appName}...`);
+      })
+      .catch((error) => {
+        console.error("Download error:", error);
+        alert('Download failed. Please try again.');
+      });
     };
   </script>
 </body>
 </html>
-
 
 
 
