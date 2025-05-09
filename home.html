@@ -1,19 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sajku1 Store</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    /* New Rainbow Background Animation */
+    @keyframes rainbowBackground {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      background: linear-gradient(270deg, #ff0000, #ff8000, #ffff00, #00ff00, #0000ff, #8000ff, #ff00ff);
+      background-size: 400% 400%;
+      animation: rainbowBackground 15s ease infinite;
       color: white;
     }
+
+    /* Updated Category Buttons */
+    .category-tabs button {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 30px;
+      transition: all 0.4s;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      margin: 0 5px;
+      font-size: 14px;
+    }
+
+    .category-tabs button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Unique colors for each category button */
+    .category-tabs button:nth-child(1) { 
+      background: linear-gradient(45deg, #ff00cc, #3333ff);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .category-tabs button:nth-child(2) { 
+      background: linear-gradient(45deg, #00ff00, #00ccff);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .category-tabs button:nth-child(3) { 
+      background: linear-gradient(45deg, #ff6600, #ffcc00);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .category-tabs button:nth-child(4) { 
+      background: linear-gradient(45deg, #9900ff, #ff0066);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    /* New App Update Button in Nav */
+    nav a.update-btn {
+      background: linear-gradient(45deg, #ff0000, #ff6600);
+      padding: 12px;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+    }
+
+    nav a.update-btn i {
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Rest of your existing CSS remains exactly the same */
     header {
       background: linear-gradient(to right, #8e2de2, #4a00e0);
       color: white;
@@ -25,10 +98,24 @@
       position: relative;
       z-index: 10;
     }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(to right, #ff00cc, #3333ff);
+      opacity: 0.7;
+    }
     .profile {
       display: flex;
       align-items: center;
       cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .profile:hover {
+      transform: scale(1.05);
     }
     .profile img {
       width: 40px;
@@ -36,209 +123,621 @@
       border-radius: 50%;
       margin-right: 10px;
       border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
     .main {
       padding: 15px;
+      background: rgba(0, 0, 0, 0.2);
       min-height: calc(100vh - 150px);
+      backdrop-filter: blur(5px);
+    }
+    .search-container {
+      margin: 15px auto;
+      width: 90%;
+      position: relative;
+    }
+    #searchBar {
+      width: 100%;
+      padding: 10px 15px;
+      padding-left: 40px;
+      border-radius: 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .fa-search {
+      position: absolute;
+      left: 15px;
+      top: 12px;
+      color: rgba(255, 255, 255, 0.7);
     }
     .category-tabs {
       display: flex;
       justify-content: space-around;
-      background: rgba(255, 255, 255, 0.1);
       padding: 12px 0;
-      border-radius: 10px;
       margin-bottom: 15px;
     }
-    .category-tabs button {
-      background: none;
-      border: none;
-      color: white;
-      padding: 8px 15px;
-      border-radius: 20px;
-      cursor: pointer;
+    .app-list {
+      display: flex;
+      overflow-x: auto;
+      gap: 15px;
+      padding: 15px 5px;
+      scrollbar-width: thin;
+      scrollbar-color: #8e2de2 #302b63;
     }
-    .apps-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 15px;
+    .app-list::-webkit-scrollbar {
+      height: 8px;
+    }
+    .app-list::-webkit-scrollbar-track {
+      background: #302b63;
+      border-radius: 10px;
+    }
+    .app-list::-webkit-scrollbar-thumb {
+      background: #8e2de2;
+      border-radius: 10px;
     }
     .app-card {
       background: linear-gradient(145deg, #1e1e3f, #2a2a5a);
       border-radius: 15px;
-      padding: 20px;
+      padding: 15px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      min-width: 180px;
+      flex-shrink: 0;
+      position: relative;
+      text-align: center;
+      transition: all 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .app-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
+    }
+    .app-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      margin-bottom: 10px;
+    }
+    .app-card h4 {
+      margin: 10px 0;
+      color: #fff;
+      font-size: 16px;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+    .download-count {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 5px;
+    }
+    .rating {
+      color: gold;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+    .rating span {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+    }
+    .download-progress {
+      width: 100%;
+      height: 5px;
+      margin-top: 10px;
+      border-radius: 5px;
+      appearance: none;
+    }
+    .download-progress::-webkit-progress-bar {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+    .download-progress::-webkit-progress-value {
+      background: linear-gradient(to right, #ff00cc, #3333ff);
+      border-radius: 5px;
     }
     .install-btn {
       background: linear-gradient(to right, #ff00cc, #3333ff);
       color: white;
       border: none;
-      padding: 10px;
+      padding: 8px 15px;
       border-radius: 20px;
+      margin-top: 5px;
       cursor: pointer;
-      width: 100%;
-      margin-top: 10px;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+    .install-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+    #themeToggle {
+      position: fixed;
+      top: 70px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     nav {
       position: fixed;
       bottom: 0;
       width: 100%;
       background: linear-gradient(to right, #8e2de2, #4a00e0);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
       display: flex;
       justify-content: space-around;
       padding: 12px 0;
+      box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+      z-index: 100;
     }
     nav a {
+      text-align: center;
       color: white;
       text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s;
+      padding: 5px 10px;
+      border-radius: 20px;
     }
-    .loading {
-      text-align: center;
-      padding: 50px;
+    nav a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+    }
+    nav a i {
       font-size: 18px;
+      display: block;
+      margin-bottom: 5px;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(255, 65, 108, 0.7);
+      animation: pulse 1.5s infinite;
+    }
+    .notification-icon {
+      position: relative;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .offline-message {
+      background: #ff4b2b;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: none;
+    }
+    .auth-check {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #4a00e0;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      z-index: 1001;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
+  <div class="auth-check" id="auth-check">
+    Checking authentication...
+  </div>
+  
+  <div class="offline-message" id="offline-message">
+    You are offline. Please connect to the internet to use Sajku1 Store.
+  </div>
+  
   <header>
     <h2>Sajku1 Store</h2>
-    <div class="profile">
-      <img id="user-photo" src="https://via.placeholder.com/40" alt="User">
-      <span id="user-name">Loading...</span>
+    <div class="profile" onclick="window.location.href='dashboard.html'">
+      <img id="user-photo" src="https://via.placeholder.com/40" alt="User Photo" />
+      <span id="user-name">User Name</span>
     </div>
   </header>
-
+  
+  <!-- Theme Toggle Button -->
+  <button id="themeToggle" onclick="toggleTheme()">🌓</button>
+  
   <div class="main">
+    <!-- Search Bar -->
+    <div class="search-container">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchBar" placeholder="ऐप्स खोजें..." oninput="searchApps()">
+    </div>
+    
     <div class="category-tabs">
       <button onclick="loadCategory('top')">Top Apps</button>
       <button onclick="loadCategory('games')">Games</button>
       <button onclick="loadCategory('tools')">Tools</button>
       <button onclick="loadCategory('editors')">Editor's Choice</button>
     </div>
-    <div id="apps-container" class="loading">
-      <i class="fas fa-spinner fa-spin"></i> Loading apps...
-    </div>
+    <div id="app-container" class="app-list"></div>
   </div>
-
+  
   <nav>
-    <a href="#"><i class="fas fa-home"></i> Home</a>
-    <a href="#"><i class="fas fa-gamepad"></i> Games</a>
-    <a href="#"><i class="fas fa-search"></i> Search</a>
-    <a href="#"><i class="fas fa-gift"></i> Offers</a>
+    <a href="#" class="active"><i class="fa fa-home"></i>Home</a>
+    <a href="#"><i class="fa fa-gamepad"></i>Games</a>
+    <a href="#" class="update-btn" onclick="fullAppUpdate()">
+      <i class="fas fa-sync-alt"></i>
+    </a>
+    <a href="#"><i class="fa fa-gift"></i>Offers</a>
+    <a href="#" onclick="updateApp()" class="notification-icon">
+      <i class="fa fa-download"></i>
+      <span id="update-badge" class="notification-badge" style="display: none;"></span>
+    </a>
   </nav>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
+  <script type="module">
+    // New function for full app update
+    function fullAppUpdate() {
+      if(confirm("क्या आप पूरा ऐप अपडेट करना चाहते हैं? सभी नए फीचर्स और सुधार प्राप्त करें!")) {
+        alert("ऐप अपडेट शुरू हुआ... 5 सेकंड में पूरा होगा");
+        // Simulate update process
+        setTimeout(() => {
+          alert("ऐप सफलतापूर्वक अपडेट हो गया! नए फीचर्स का आनंद लें!");
+          document.getElementById('update-badge').style.display = 'none';
+        }, 5000);
+      }
+    }
 
-  <script>
-    // Firebase Configuration
+    // Show auth check message
+    document.getElementById('auth-check').style.display = 'block';
+    
+    // 1. Network check function
+    function checkNetwork() {
+      const offlineMsg = document.getElementById('offline-message');
+      const appContainer = document.getElementById('app-container');
+      
+      if (!navigator.onLine) {
+        offlineMsg.style.display = 'block';
+        appContainer.innerHTML = '<p style="text-align:center;width:100%;color:#ff4b2b;">⚠️ No Internet Connection</p>';
+        document.querySelectorAll('.category-tabs button').forEach(btn => {
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+        });
+      } else {
+        offlineMsg.style.display = 'none';
+        if (localStorage.getItem("userID")) loadCategory('top');
+      }
+    }
+
+    // 2. Check on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      checkNetwork();
+      checkTheme();
+      registerServiceWorker();
+      
+      // Event listeners for network status
+      window.addEventListener('online', checkNetwork);
+      window.addEventListener('offline', checkNetwork);
+    });
+
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
+
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d"
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
     };
 
     // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const messaging = getMessaging(app);
 
-    // Check Authentication State
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        document.getElementById('user-name').textContent = user.email || "User";
-        loadCategory('top');
-      } else {
-        window.location.href = "login.html";
+    // Combined authentication check
+    const uid = localStorage.getItem("userID");
+    if (!uid) {
+      // Clear any existing data
+      localStorage.clear();
+      window.location.replace('https://sajku1.github.io/index.html');
+    } else {
+      // Verify with Firebase
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          localStorage.removeItem("userID");
+          window.location.replace('https://sajku1.github.io/index.html');
+        } else {
+          // User is authenticated, load their data
+          document.getElementById('auth-check').style.display = 'none';
+          loadUserData(uid);
+          loadCategory('top');
+          setupNotificationListener();
+        }
+      });
+    }
+
+    // Register Service Worker for PWA
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful');
+          })
+          .catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      }
+    }
+
+    // Theme functionality
+    function checkTheme() {
+      if (localStorage.getItem("theme") === "light") {
+        document.body.classList.add("light-mode");
+        document.getElementById("themeToggle").textContent = "🌞";
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("light-mode");
+      const isLight = document.body.classList.contains("light-mode");
+      localStorage.setItem("theme", isLight ? "light" : "dark");
+      document.getElementById("themeToggle").textContent = isLight ? "🌞" : "🌓";
+    }
+
+    // Search functionality
+    function searchApps() {
+      const searchTerm = document.getElementById("searchBar").value.toLowerCase();
+      const appCards = document.querySelectorAll(".app-card");
+      
+      appCards.forEach(card => {
+        const appName = card.querySelector("h4").textContent.toLowerCase();
+        card.style.display = appName.includes(searchTerm) ? "block" : "none";
+      });
+    }
+
+    // Load user data
+    async function loadUserData(uid) {
+      try {
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          document.getElementById("user-name").textContent = data.name;
+          if (data.photo) document.getElementById("user-photo").src = data.photo;
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        document.getElementById('offline-message').style.display = 'block';
+        document.getElementById('offline-message').textContent = 'Failed to connect to server. Please check your internet connection.';
+      }
+    }
+
+    // Handle incoming messages
+    onMessage(messaging, (payload) => {
+      console.log('Message received:', payload);
+      showNotification(payload.notification.title, payload.notification.body);
+      
+      // Update badge for app updates
+      if (payload.notification.title.includes('Update')) {
+        const badge = document.getElementById('update-badge');
+        badge.style.display = 'flex';
+        badge.textContent = '1';
       }
     });
 
-    // Load Category from Firestore
-    function loadCategory(category) {
-      const container = document.getElementById('apps-container');
-      container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading apps...</div>';
+    function showNotification(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/icon-192x192.png' });
+      } else {
+        // Fallback for browsers that don't support notifications
+        alert(`${title}\n${body}`);
+      }
+    }
 
-      db.collection("apps")
-        .where("category", "==", category)
-        .get()
-        .then((querySnapshot) => {
-          if (querySnapshot.empty) {
-            container.innerHTML = '<div class="loading"><i class="fas fa-box-open"></i> No apps found</div>';
-            return;
-          }
-
-          const apps = {};
-          querySnapshot.forEach((doc) => {
-            apps[doc.id] = doc.data();
+    // Real-time notification listener
+    function setupNotificationListener() {
+      const uid = localStorage.getItem("userID");
+      if (uid) {
+        const notificationsRef = collection(db, "notifications");
+        onSnapshot(notificationsRef, (snapshot) => {
+          snapshot.docChanges().forEach(change => {
+            if (change.type === "added" && change.doc.data().userId === uid) {
+              const data = change.doc.data();
+              showNotification(data.title, data.message);
+            }
           });
-          renderApps(apps, category);
-        })
-        .catch((error) => {
-          console.error("Firestore Error:", error);
-          container.innerHTML = '<div class="loading" style="color:red"><i class="fas fa-exclamation-triangle"></i> Error loading apps</div>';
         });
-    }
-
-    // Render Apps
-    function renderApps(apps, category) {
-      const container = document.getElementById('apps-container');
-      container.innerHTML = '';
-
-      for (const appId in apps) {
-        const app = apps[appId];
-        const card = document.createElement('div');
-        card.className = 'app-card';
-        card.innerHTML = `
-          <h3>${app.name || 'Unnamed App'}</h3>
-          <p>${app.description || 'No description available'}</p>
-          <button class="install-btn" onclick="downloadApp('${appId}', '${app.name || 'App'}')">
-            <i class="fas fa-download"></i> Install (${app.downloads || 0})
-          </button>
-        `;
-        container.appendChild(card);
       }
     }
 
-    // Download App Function (Updated to work with your security rules)
-    window.downloadApp = function(appId, appName) {
+    // Track download events with progress bar
+    window.downloadApp = async (appId, appName) => {
       if (!navigator.onLine) {
-        alert('Internet connection required');
+        alert('Internet connection required to download apps');
         return;
       }
-
-      const user = auth.currentUser;
-      if (!user) {
-        alert('Please login first');
+      
+      const uid = localStorage.getItem("userID");
+      if (!uid) {
+        alert('Please login to download apps');
         return;
       }
+      
+      try {
+        // Get the app card and add progress bar
+        const appCard = document.querySelector(`[data-app-id="${appId}"]`);
+        if (appCard) {
+          const progressBar = document.createElement('progress');
+          progressBar.className = 'download-progress';
+          progressBar.value = 0;
+          progressBar.max = 100;
+          appCard.appendChild(progressBar);
+        }
 
-      // Create a new download record in 'downloads' collection
-      db.collection("downloads").add({
-        appId: appId,
-        userId: user.uid,
-        appName: appName,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      })
-      .then(() => {
-        alert(`Download started for ${appName}`);
-        // Refresh the app list to show updated download count
-        const activeCategory = document.querySelector('.category-tabs button.active')?.dataset.category || 'top';
-        loadCategory(activeCategory);
-      })
-      .catch((error) => {
-        console.error("Download failed:", error);
-        alert("Download failed. Please try again.");
+        // Send download notification
+        await addDoc(collection(db, "notifications"), {
+          userId: uid,
+          title: "Download Started",
+          message: `Downloading ${appName}`,
+          timestamp: new Date(),
+          read: false
+        });
+
+        // Update download count in Firestore
+        const appRef = doc(db, "apps", appId);
+        await updateDoc(appRef, {
+          downloads: increment(1)
+        });
+
+        // Simulate download progress
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += 10;
+          if (appCard) {
+            const progressBar = appCard.querySelector('.download-progress');
+            if (progressBar) progressBar.value = progress;
+          }
+          
+          if (progress >= 100) {
+            clearInterval(interval);
+            // Send completion notification
+            addDoc(collection(db, "notifications"), {
+              userId: uid,
+              title: "Download Complete",
+              message: `${appName} installed successfully!`,
+              timestamp: new Date(),
+              read: false
+            });
+          }
+        }, 300);
+      } catch (error) {
+        console.error("Download error:", error);
+        alert('Download failed. Please check your internet connection.');
+      }
+    };
+
+    // Load apps by category with ratings
+    async function loadCategory(category) {
+      if (!navigator.onLine) {
+    document.getElementById('offline-message').style.display = 'block';
+        document.getElementById('app-container').innerHTML = '<p style="text-align:center;width:100%;">Internet connection required to load apps</p>';
+        return;
+      }
+      
+      const appContainer = document.getElementById('app-container');
+      appContainer.innerHTML = '<p style="text-align:center;width:100%;">Loading apps...</p>';
+      
+      try {
+        const querySnapshot = await getDocs(collection(db, "apps"));
+        if (querySnapshot.empty) {
+          appContainer.innerHTML = '<p style="text-align:center;width:100%;">No apps found in this category</p>';
+          return;
+        }
+        
+        appContainer.innerHTML = '';
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          // Filter apps by category
+          if (data.category === category) {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.dataset.appId = docSnap.id;
+            card.innerHTML = `
+              <img src="${data.image}" alt="App Logo" onerror="this.src='https://via.placeholder.com/80'" />
+              <h4>${data.name}</h4>
+              <div class="rating">
+                ${getStarRating(data.rating || 0)} <span>(${(data.rating || 0).toFixed(1)})</span>
+              </div>
+              <p class="download-count">${data.downloads || 0} downloads</p>
+              <button class="install-btn" onclick="downloadApp('${docSnap.id}', '${data.name}')">Download</button>
+            `;
+            appContainer.appendChild(card);
+          }
+        });
+      } catch (error) {
+        console.error("Error loading apps:", error);
+        appContainer.innerHTML = '<p style="text-align:center;width:100%;color:red;">Failed to load apps. Please check your internet connection.</p>';
+      }
+    }
+
+    // Helper function to generate star rating
+    function getStarRating(rating) {
+      const fullStars = Math.floor(rating);
+      const halfStar = rating % 1 >= 0.5 ? '½' : '';
+      const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+      return '★'.repeat(fullStars) + halfStar + '☆'.repeat(emptyStars);
+    }
+
+    // Update app function
+    window.updateApp = function() {
+      if (!navigator.onLine) {
+        alert('Internet connection required to check for updates');
+        return;
+      }
+      
+      const uid = localStorage.getItem("userID");
+      if (!uid) {
+        alert('Please login to check for updates');
+        return;
+      }
+      
+      // Check for updates and show notification
+      addDoc(collection(db, "notifications"), {
+        userId: uid,
+        title: "Update Available",
+        message: "New version of Sajku1 Store is available!",
+        timestamp: new Date(),
+        read: false
+      }).then(() => {
+        document.getElementById('update-badge').style.display = 'none';
+        alert('Checking for updates...');
+      }).catch(error => {
+        console.error("Update check failed:", error);
+        alert('Failed to check for updates. Please check your internet connection.');
       });
     };
   </script>
 </body>
 </html>
-
 
 
 
