@@ -127,13 +127,13 @@
     <a href="#"><i class="fas fa-gift"></i> Offers</a>
   </nav>
 
-  <!-- Firebase SDK (ONLY Firestore + Auth, NO Realtime Database) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
 
   <script>
-    // Firebase Configuration (Realtime Database URL REMOVED)
+    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
@@ -143,18 +143,18 @@
       appId: "1:831227140840:web:634cc6248ead6ab186075d"
     };
 
-    // Initialize Firebase (ONLY Firestore + Auth)
+    // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore(); // Firestore Database
+    const db = firebase.firestore();
 
     // Check Authentication State
     auth.onAuthStateChanged((user) => {
       if (user) {
         document.getElementById('user-name').textContent = user.email || "User";
-        loadCategory('top'); // Load default category
+        loadCategory('top');
       } else {
-        window.location.href = "login.html"; // Redirect if not logged in
+        window.location.href = "login.html";
       }
     });
 
@@ -163,7 +163,6 @@
       const container = document.getElementById('apps-container');
       container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading apps...</div>';
 
-      // Firestore Query: Get apps by category
       db.collection("apps")
         .where("category", "==", category)
         .get()
@@ -175,7 +174,7 @@
 
           const apps = {};
           querySnapshot.forEach((doc) => {
-            apps[doc.id] = doc.data(); // Store app data
+            apps[doc.id] = doc.data();
           });
           renderApps(apps, category);
         })
@@ -185,7 +184,7 @@
         });
     }
 
-    // Render Apps (No changes needed)
+    // Render Apps
     function renderApps(apps, category) {
       const container = document.getElementById('apps-container');
       container.innerHTML = '';
@@ -198,14 +197,14 @@
           <h3>${app.name || 'Unnamed App'}</h3>
           <p>${app.description || 'No description available'}</p>
           <button class="install-btn" onclick="downloadApp('${appId}', '${app.name || 'App'}')">
-            <i class="fas fa-download"></i> Install
+            <i class="fas fa-download"></i> Install (${app.downloads || 0})
           </button>
         `;
         container.appendChild(card);
       }
     }
 
-    // Download App (Firestore Transaction)
+    // Download App Function (Updated to work with your security rules)
     window.downloadApp = function(appId, appName) {
       if (!navigator.onLine) {
         alert('Internet connection required');
@@ -218,17 +217,18 @@
         return;
       }
 
-      // Firestore Transaction to update download count
-      const appRef = db.collection("apps").doc(appId);
-      db.runTransaction((transaction) => {
-        return transaction.get(appRef).then((doc) => {
-          if (!doc.exists) throw "App not found!";
-          const newDownloads = (doc.data().downloads || 0) + 1;
-          transaction.update(appRef, { downloads: newDownloads });
-        });
+      // Create a new download record in 'downloads' collection
+      db.collection("downloads").add({
+        appId: appId,
+        userId: user.uid,
+        appName: appName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
       .then(() => {
-        alert(`Downloading ${appName}...`);
+        alert(`Download started for ${appName}`);
+        // Refresh the app list to show updated download count
+        const activeCategory = document.querySelector('.category-tabs button.active')?.dataset.category || 'top';
+        loadCategory(activeCategory);
       })
       .catch((error) => {
         console.error("Download failed:", error);
