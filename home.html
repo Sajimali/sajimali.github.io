@@ -25,24 +25,10 @@
       position: relative;
       z-index: 10;
     }
-    header::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: linear-gradient(to right, #ff00cc, #3333ff);
-      opacity: 0.7;
-    }
     .profile {
       display: flex;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.3s;
-    }
-    .profile:hover {
-      transform: scale(1.05);
     }
     .profile img {
       width: 40px;
@@ -50,11 +36,9 @@
       border-radius: 50%;
       margin-right: 10px;
       border: 2px solid #fff;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
     .main {
       padding: 15px;
-      background: rgba(0, 0, 0, 0.2);
       min-height: calc(100vh - 150px);
     }
     .category-tabs {
@@ -64,24 +48,14 @@
       padding: 12px 0;
       border-radius: 10px;
       margin-bottom: 15px;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .category-tabs button {
       background: none;
       border: none;
-      font-weight: bold;
-      cursor: pointer;
       color: white;
       padding: 8px 15px;
       border-radius: 20px;
-      transition: all 0.3s;
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-    }
-    .category-tabs button:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
     }
     .apps-container {
       display: grid;
@@ -94,37 +68,16 @@
       border-radius: 15px;
       padding: 20px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      transition: all 0.3s;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .app-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
-    }
-    .app-card h3 {
-      margin-top: 0;
-      color: #fff;
-    }
-    .app-card p {
-      color: #ccc;
-      font-size: 14px;
     }
     .install-btn {
       background: linear-gradient(to right, #ff00cc, #3333ff);
       color: white;
       border: none;
-      padding: 8px 15px;
+      padding: 10px;
       border-radius: 20px;
       cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       width: 100%;
       margin-top: 10px;
-    }
-    .install-btn:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
     }
     nav {
       position: fixed;
@@ -134,70 +87,22 @@
       display: flex;
       justify-content: space-around;
       padding: 12px 0;
-      box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
     }
     nav a {
       color: white;
       text-decoration: none;
-      font-size: 14px;
     }
-    .offline-message {
-      background: #ff4b2b;
-      color: white;
+    .loading {
       text-align: center;
-      padding: 10px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      display: none;
-    }
-    .auth-check {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: #4a00e0;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      z-index: 1001;
-      font-weight: bold;
-    }
-    .notification-badge {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: linear-gradient(to right, #ff416c, #ff4b2b);
-      color: white;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 10px rgba(255, 65, 108, 0.7);
-      animation: pulse 1.5s infinite;
-    }
-    .notification-icon {
-      position: relative;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
+      padding: 50px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <div class="auth-check" id="auth-check">Checking authentication...</div>
-  <div class="offline-message" id="offline-message">You are offline. Please check internet.</div>
-  
   <header>
     <h2>Sajku1 Store</h2>
-    <div class="profile" id="profile-btn">
+    <div class="profile">
       <img id="user-photo" src="https://via.placeholder.com/40" alt="User">
       <span id="user-name">Loading...</span>
     </div>
@@ -210,45 +115,29 @@
       <button onclick="loadCategory('tools')">Tools</button>
       <button onclick="loadCategory('editors')">Editor's Choice</button>
     </div>
-    <div id="apps-container" class="apps-container"></div>
+    <div id="apps-container" class="loading">
+      <i class="fas fa-spinner fa-spin"></i> Loading apps...
+    </div>
   </div>
 
   <nav>
-    <a href="#" class="active"><i class="fas fa-home"></i> Home</a>
+    <a href="#"><i class="fas fa-home"></i> Home</a>
     <a href="#"><i class="fas fa-gamepad"></i> Games</a>
     <a href="#"><i class="fas fa-search"></i> Search</a>
     <a href="#"><i class="fas fa-gift"></i> Offers</a>
-    <a href="#" onclick="updateApp()" class="notification-icon">
-      <i class="fas fa-download"></i>
-      <span id="update-badge" class="notification-badge" style="display: none;"></span>
-    </a>
   </nav>
 
-  <script type="module">
-    // Firebase Imports (v10+)
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-    import { 
-      getAuth, 
-      onAuthStateChanged, 
-      signOut 
-    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-    import { 
-      getDatabase, 
-      ref, 
-      get,
-      set,
-      onValue
-    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
-    import { 
-      getMessaging, 
-      onMessage 
-    } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-messaging.js";
+  <!-- Firebase SDK (Non-module version for better compatibility) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js"></script>
 
-    // Firebase Config (Replace with yours)
+  <script>
+    // Firebase Configuration (Verified)
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
-      databaseURL: "https://sajku-store-default-rdb.firebaseio.com",
+      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com",
       projectId: "sajku-store",
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
@@ -256,56 +145,55 @@
     };
 
     // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const messaging = getMessaging(app);
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-    // 1. Authentication Check
-    onAuthStateChanged(auth, (user) => {
-      const authCheck = document.getElementById('auth-check');
-      
+    // Check Authentication State
+    auth.onAuthStateChanged((user) => {
       if (user) {
-        authCheck.style.display = 'none';
-        loadUserData(user.uid);
+        // User is signed in
+        document.getElementById('user-name').textContent = user.email || "User";
         loadCategory('top');
-        setupNotificationListener();
       } else {
-        authCheck.textContent = "Redirecting to login...";
-        setTimeout(() => window.location.href = "login.html", 1500);
+        // No user is signed in
+        window.location.href = "login.html";
       }
     });
 
-    // 2. Load User Data
-    async function loadUserData(uid) {
-      try {
-        const snapshot = await get(ref(db, `users/${uid}`));
-        if (snapshot.exists()) {
-          const user = snapshot.val();
-          document.getElementById('user-name').textContent = user.name || "User";
-          if (user.photo) {
-            document.getElementById('user-photo').src = user.photo;
+    // Load Category Function (Fixed)
+    function loadCategory(category) {
+      const container = document.getElementById('apps-container');
+      container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading apps...</div>';
+
+      db.ref('apps/' + category).once('value')
+        .then((snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            renderApps(data, category);
+          } else {
+            container.innerHTML = '<div class="loading"><i class="fas fa-box-open"></i> No apps found</div>';
           }
-          localStorage.setItem("userID", uid);
-        }
-      } catch (error) {
-        console.error("User data error:", error);
-      }
+        })
+        .catch((error) => {
+          console.error("Firebase Error:", error);
+          container.innerHTML = '<div class="loading" style="color:red"><i class="fas fa-exclamation-triangle"></i> Error loading apps</div>';
+        });
     }
 
-    // 3. Render Apps Function
+    // Render Apps Function (Fixed)
     function renderApps(apps, category) {
       const container = document.getElementById('apps-container');
       container.innerHTML = '';
 
-      for (const id in apps) {
-        const app = apps[id];
+      for (const appId in apps) {
+        const app = apps[appId];
         const card = document.createElement('div');
         card.className = 'app-card';
         card.innerHTML = `
-          <h3>${app.name}</h3>
-          <p>${app.description}</p>
-          <button class="install-btn" onclick="downloadApp('${category}', '${id}', '${app.name}')">
+          <h3>${app.name || 'Unnamed App'}</h3>
+          <p>${app.description || 'No description available'}</p>
+          <button class="install-btn" onclick="downloadApp('${category}', '${appId}', '${app.name || 'App'}')">
             <i class="fas fa-download"></i> Install
           </button>
         `;
@@ -313,93 +201,36 @@
       }
     }
 
-    // 4. Load Category Function
-    function loadCategory(category) {
-      const categoryRef = ref(db, `apps/${category}`);
-      onValue(categoryRef, (snapshot) => {
-        if (snapshot.exists()) {
-          renderApps(snapshot.val(), category);
-        } else {
-          document.getElementById('apps-container').innerHTML = '<p style="text-align:center">No apps found.</p>';
-        }
-      });
-    }
-
-    // 5. Download App Function
-    window.downloadApp = async (category, appId, appName) => {
+    // Download App Function (Fixed)
+    window.downloadApp = function(category, appId, appName) {
       if (!navigator.onLine) {
         alert('Internet connection required');
         return;
       }
 
-      const uid = localStorage.getItem("userID");
-      if (!uid) {
+      const user = auth.currentUser;
+      if (!user) {
         alert('Please login first');
         return;
       }
 
-      try {
-        const downloadRef = ref(db, `apps/${category}/${appId}/downloads`);
-        const snapshot = await get(downloadRef);
-        const currentDownloads = snapshot.exists() ? snapshot.val() : 0;
-
-        await set(downloadRef, currentDownloads + 1);
-
-        alert(`Downloading ${appName}...`);
-      } catch (error) {
-        console.error("Download error:", error);
-        alert('Download failed. Please try again.');
-      }
+      // Get current downloads count
+      db.ref('apps/' + category + '/' + appId + '/downloads').once('value')
+        .then((snapshot) => {
+          const currentDownloads = snapshot.val() || 0;
+          // Update downloads count
+          return db.ref('apps/' + category + '/' + appId).update({
+            downloads: currentDownloads + 1
+          });
+        })
+        .then(() => {
+          alert(`Downloading ${appName}...`);
+        })
+        .catch((error) => {
+          console.error("Download error:", error);
+          alert('Download failed. Please try again.');
+        });
     };
-
-    // 6. Update App
-    window.updateApp = async () => {
-      const badge = document.getElementById('update-badge');
-      badge.style.display = 'none';
-      
-      try {
-        const uid = localStorage.getItem("userID");
-        if (!uid) throw new Error("Not logged in");
-        
-        alert("Checking for updates...");
-        // Add your update logic here
-      } catch (error) {
-        console.error("Update error:", error);
-      }
-    };
-
-    // 7. Notifications
-    function setupNotificationListener() {
-      onMessage(messaging, (payload) => {
-        console.log("Message received:", payload);
-        if (payload.notification.title.includes('Update')) {
-          const badge = document.getElementById('update-badge');
-          badge.style.display = 'flex';
-          badge.textContent = '1';
-        }
-        alert(`${payload.notification.title}\n${payload.notification.body}`);
-      });
-    }
-
-    // 8. Logout
-    window.logout = async () => {
-      try {
-        await signOut(auth);
-        localStorage.clear();
-        window.location.href = 'login.html';
-      } catch (error) {
-        console.error("Logout error:", error);
-      }
-    };
-
-    // 9. Network Monitoring
-    window.addEventListener('online', () => {
-      document.getElementById('offline-message').style.display = 'none';
-    });
-
-    window.addEventListener('offline', () => {
-      document.getElementById('offline-message').style.display = 'block';
-    });
   </script>
 </body>
 </html>
