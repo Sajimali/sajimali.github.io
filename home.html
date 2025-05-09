@@ -127,13 +127,13 @@
     <a href="#"><i class="fas fa-gift"></i> Offers</a>
   </nav>
 
-  <!-- Firebase SDK (Non-module version for better compatibility) -->
+  <!-- Firebase SDK (ONLY Firestore + Auth, NO Realtime Database) -->
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
 
   <script>
-    // Firebase Configuration (Verified)
+    // Firebase Configuration (Realtime Database URL REMOVED)
     const firebaseConfig = {
       apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
       authDomain: "sajku-store.firebaseapp.com",
@@ -143,39 +143,41 @@
       appId: "1:831227140840:web:634cc6248ead6ab186075d"
     };
 
-    // Initialize Firebase
+    // Initialize Firebase (ONLY Firestore + Auth)
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
+    const db = firebase.firestore(); // Firestore Database
 
     // Check Authentication State
     auth.onAuthStateChanged((user) => {
       if (user) {
-        // User is signed in
         document.getElementById('user-name').textContent = user.email || "User";
-        loadCategory('top');
+        loadCategory('top'); // Load default category
       } else {
-        // No user is signed in
-        window.location.href = "login.html";
+        window.location.href = "login.html"; // Redirect if not logged in
       }
     });
 
-    // Load Category Function (Updated for Firestore)
+    // Load Category from Firestore
     function loadCategory(category) {
       const container = document.getElementById('apps-container');
       container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading apps...</div>';
 
-      db.collection('apps').where('category', '==', category).get()
+      // Firestore Query: Get apps by category
+      db.collection("apps")
+        .where("category", "==", category)
+        .get()
         .then((querySnapshot) => {
-          if (!querySnapshot.empty) {
-            const apps = {};
-            querySnapshot.forEach((doc) => {
-              apps[doc.id] = doc.data();
-            });
-            renderApps(apps, category);
-          } else {
+          if (querySnapshot.empty) {
             container.innerHTML = '<div class="loading"><i class="fas fa-box-open"></i> No apps found</div>';
+            return;
           }
+
+          const apps = {};
+          querySnapshot.forEach((doc) => {
+            apps[doc.id] = doc.data(); // Store app data
+          });
+          renderApps(apps, category);
         })
         .catch((error) => {
           console.error("Firestore Error:", error);
@@ -183,7 +185,7 @@
         });
     }
 
-    // Render Apps Function (Same as before)
+    // Render Apps (No changes needed)
     function renderApps(apps, category) {
       const container = document.getElementById('apps-container');
       container.innerHTML = '';
@@ -203,7 +205,7 @@
       }
     }
 
-    // Download App Function (Updated for Firestore)
+    // Download App (Firestore Transaction)
     window.downloadApp = function(appId, appName) {
       if (!navigator.onLine) {
         alert('Internet connection required');
@@ -216,25 +218,21 @@
         return;
       }
 
-      // Get the app document reference
-      const appRef = db.collection('apps').doc(appId);
-
-      // Run a transaction to increment the downloads count
+      // Firestore Transaction to update download count
+      const appRef = db.collection("apps").doc(appId);
       db.runTransaction((transaction) => {
         return transaction.get(appRef).then((doc) => {
-          if (!doc.exists) {
-            throw "Document does not exist!";
-          }
-          const currentDownloads = doc.data().downloads || 0;
-          transaction.update(appRef, { downloads: currentDownloads + 1 });
+          if (!doc.exists) throw "App not found!";
+          const newDownloads = (doc.data().downloads || 0) + 1;
+          transaction.update(appRef, { downloads: newDownloads });
         });
       })
       .then(() => {
         alert(`Downloading ${appName}...`);
       })
       .catch((error) => {
-        console.error("Download error:", error);
-        alert('Download failed. Please try again.');
+        console.error("Download failed:", error);
+        alert("Download failed. Please try again.");
       });
     };
   </script>
