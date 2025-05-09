@@ -83,32 +83,17 @@
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
-    .app-list {
-      display: flex;
-      overflow-x: auto;
-      gap: 15px;
-      padding: 15px 5px;
-      scrollbar-width: thin;
-      scrollbar-color: #8e2de2 #302b63;
-    }
-    .app-list::-webkit-scrollbar {
-      height: 8px;
-    }
-    .app-list::-webkit-scrollbar-track {
-      background: #302b63;
-      border-radius: 10px;
-    }
-    .app-list::-webkit-scrollbar-thumb {
-      background: #8e2de2;
-      border-radius: 10px;
+    .apps-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 15px;
     }
     .app-card {
       background: linear-gradient(145deg, #1e1e3f, #2a2a5a);
       border-radius: 15px;
-      padding: 15px;
+      padding: 20px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      min-width: 180px;
-      flex-shrink: 0;
       transition: all 0.3s;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
@@ -116,12 +101,13 @@
       transform: translateY(-5px);
       box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
     }
-    .app-card img {
-      width: 80px;
-      height: 80px;
-      border-radius: 15px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    .app-card h3 {
+      margin-top: 0;
+      color: #fff;
+    }
+    .app-card p {
+      color: #ccc;
+      font-size: 14px;
     }
     .install-btn {
       background: linear-gradient(to right, #ff00cc, #3333ff);
@@ -133,6 +119,12 @@
       font-weight: bold;
       transition: all 0.3s;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      margin-top: 10px;
+    }
+    .install-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
     }
     nav {
       position: fixed;
@@ -218,7 +210,7 @@
       <button onclick="loadCategory('tools')">Tools</button>
       <button onclick="loadCategory('editors')">Editor's Choice</button>
     </div>
-    <div id="app-container" class="app-list"></div>
+    <div id="apps-container" class="apps-container"></div>
   </div>
 
   <nav>
@@ -244,7 +236,8 @@
       getDatabase, 
       ref, 
       get,
-      set 
+      set,
+      onValue
     } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
     import { 
       getMessaging, 
@@ -300,73 +293,58 @@
       }
     }
 
-    // 3. Load Apps by Category
-    async function loadCategory(category) {
-      const appContainer = document.getElementById('app-container');
-      
-      try {
-        if (!navigator.onLine) {
-          throw new Error("No internet connection");
-        }
+    // 3. Render Apps Function
+    function renderApps(apps, category) {
+      const container = document.getElementById('apps-container');
+      container.innerHTML = '';
 
-        appContainer.innerHTML = '<p style="text-align:center">Loading apps...</p>';
-        const snapshot = await get(ref(db, `apps/${category}`));
-        
-        if (snapshot.exists()) {
-          renderApps(snapshot.val());
-        } else {
-          appContainer.innerHTML = '<p style="text-align:center">No apps found</p>';
-        }
-      } catch (error) {
-        console.error("Load error:", error);
-        appContainer.innerHTML = `
-          <p style="text-align:center;color:#ff4b2b">
-            ${error.message.includes("offline") ? "Internet connection required" : "Failed to load apps"}
-          </p>
-        `;
-        document.getElementById('offline-message').style.display = 'block';
-      }
-    }
-
-    // 4. Render Apps
-    function renderApps(apps) {
-      const appContainer = document.getElementById('app-container');
-      appContainer.innerHTML = '';
-
-      Object.entries(apps).forEach(([id, app]) => {
+      for (const id in apps) {
+        const app = apps[id];
         const card = document.createElement('div');
         card.className = 'app-card';
         card.innerHTML = `
-          <img src="${app.image || 'https://via.placeholder.com/80'}" 
-               onerror="this.src='https://via.placeholder.com/80'">
-          <h4>${app.name}</h4>
-          <p class="download-count">${app.downloads || 0} downloads</p>
-          <button class="install-btn" onclick="downloadApp('${id}', '${app.name}')">
+          <h3>${app.name}</h3>
+          <p>${app.description}</p>
+          <button class="install-btn" onclick="downloadApp('${category}', '${id}', '${app.name}')">
             <i class="fas fa-download"></i> Install
           </button>
         `;
-        appContainer.appendChild(card);
+        container.appendChild(card);
+      }
+    }
+
+    // 4. Load Category Function
+    function loadCategory(category) {
+      const categoryRef = ref(db, `apps/${category}`);
+      onValue(categoryRef, (snapshot) => {
+        if (snapshot.exists()) {
+          renderApps(snapshot.val(), category);
+        } else {
+          document.getElementById('apps-container').innerHTML = '<p style="text-align:center">No apps found.</p>';
+        }
       });
     }
 
-    // 5. Download App
-    window.downloadApp = async (appId, appName) => {
+    // 5. Download App Function
+    window.downloadApp = async (category, appId, appName) => {
       if (!navigator.onLine) {
         alert('Internet connection required');
         return;
       }
-      
+
       const uid = localStorage.getItem("userID");
       if (!uid) {
         alert('Please login first');
         return;
       }
-      
+
       try {
-        // Update download count
-        await set(ref(db, `apps/top/${appId}/downloads`), 
-          (await get(ref(db, `apps/top/${appId}/downloads`))).val() + 1);
-        
+        const downloadRef = ref(db, `apps/${category}/${appId}/downloads`);
+        const snapshot = await get(downloadRef);
+        const currentDownloads = snapshot.exists() ? snapshot.val() : 0;
+
+        await set(downloadRef, currentDownloads + 1);
+
         alert(`Downloading ${appName}...`);
       } catch (error) {
         console.error("Download error:", error);
