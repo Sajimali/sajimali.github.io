@@ -9,7 +9,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
     import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
@@ -567,7 +567,7 @@
     }
     .power-button:hover {
       transform: translateY(-3px);
-      box-shadow: 0 7px 20px rgba(255, 65, 108, 0.6);
+      box-shadow: 0 7px 20pxrgba(255, 65, 108, 0.6);
     }
   </style>
 </head>
@@ -585,9 +585,10 @@
       </div>
 
       <div class="box">
+        <h1>Welcome to your Dashboard</h1>
         <h2>Profile Settings</h2>
-        <img id="userPhoto" class="profile-img" src="https://via.placeholder.com/150" alt="Profile Photo"><br>
-        <h3 id="userName">Loading...</h3>
+        <img id="userPhoto" class="profile-img" src="" alt="User Photo" width="100">
+        <p id="userName"></p>
         <input type="text" id="nameInput" placeholder="Enter Your Name">
         <input type="file" id="photoInput">
         <button onclick="updateProfileData()">Update Profile</button>
@@ -656,7 +657,7 @@
         if (!user) return;
         
         const notificationsRef = collection(db, "notifications");
-        const querySnapshot = await getDocs(query(notificationsRef, where("userId", "==", user.uid), orderBy("timestamp", "desc"), limit(10));
+        const querySnapshot = await getDocs(query(notificationsRef, where("userId", "==", user.uid), orderBy("timestamp", "desc"), limit(10)));
         
         let notificationHTML = '<h2>Your Notifications</h2><ul>';
         querySnapshot.forEach(doc => {
