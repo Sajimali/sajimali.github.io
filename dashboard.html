@@ -10,7 +10,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getDatabase, ref as dbRef, set as dbSet, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
     import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
@@ -21,14 +20,12 @@
       storageBucket: "sajku-store.appspot.com",
       messagingSenderId: "831227140840",
       appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56",
-      databaseURL: "https://sajku-store-default-rtdb.firebaseio.com"
+      measurementId: "G-BDH8FP9R56"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
     const db = getFirestore();
-    const rtdb = getDatabase();
     const storage = getStorage();
     let messaging;
 
@@ -108,7 +105,7 @@
       }
     }
 
-    // Combined auth state handler with Realtime Database check
+    // Combined auth state handler with Firestore check
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         alert("Please login first");
@@ -117,15 +114,15 @@
         return;
       }
 
-      // Get user data from Realtime Database
-      get(ref(rtdb, 'users/' + user.uid))
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
+      // Get user data from Firestore
+      getDoc(doc(db, "users", user.uid))
+        .then((docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const data = docSnapshot.data();
             // User logged in - show dashboard
             document.getElementById('content').style.display = 'block';
             document.getElementById('userName').innerText = data.name || "No Name";
-            document.getElementById('userPhoto').src = data.photo || "https://via.placeholder.com/150";
+            document.getElementById('userPhoto').src = data.photoURL || "https://via.placeholder.com/150";
             fetchEarnings(user.uid);
             fetchUploads(user.uid);
             setupNotificationListener(user.uid);
@@ -165,12 +162,19 @@
           await uploadBytes(photoRef, photo);
           const photoURL = await getDownloadURL(photoRef);
           await updateProfile(user, { displayName: name, photoURL });
-          await updateDoc(doc(db, "users", user.uid), { name, photoURL });
+          await setDoc(doc(db, "users", user.uid), { 
+            name, 
+            photoURL,
+            lastUpdated: new Date() 
+          }, { merge: true });
           document.getElementById('userName').innerText = name;
           document.getElementById('userPhoto').src = photoURL;
         } else {
           await updateProfile(user, { displayName: name });
-          await updateDoc(doc(db, "users", user.uid), { name });
+          await setDoc(doc(db, "users", user.uid), { 
+            name,
+            lastUpdated: new Date()
+          }, { merge: true });
           document.getElementById('userName').innerText = name;
         }
         
@@ -252,18 +256,19 @@
 
     let userEarnings = { uploader: 0, downloader: 0 };
     async function fetchEarnings(uid) {
-      onValue(dbRef(rtdb, `earnings/${uid}`), (snapshot) => {
-        const data = snapshot.val() || { uploader: 0, downloader: 0 };
+      const earningsRef = doc(db, "earnings", uid);
+      onSnapshot(earningsRef, (docSnapshot) => {
+        const data = docSnapshot.exists() ? docSnapshot.data() : { uploader: 0, downloader: 0 };
         userEarnings = data;
-        document.getElementById('uploaderEarning').innerText = `${data.uploader} ₹`;
-        document.getElementById('downloaderEarning').innerText = `${data.downloader} ₹`;
+        document.getElementById('uploaderEarning').innerText = `${data.uploader || 0} ₹`;
+        document.getElementById('downloaderEarning').innerText = `${data.downloader || 0} ₹`;
         
         // Send earning update notification if changed
         if (data.uploader > 0 || data.downloader > 0) {
           addDoc(collection(db, "notifications"), {
             userId: uid,
             title: "Earnings Updated",
-            message: `Your current balance: Uploader ₹${data.uploader} | Downloader ₹${data.downloader}`,
+            message: `Your current balance: Uploader ₹${data.uploader || 0} | Downloader ₹${data.downloader || 0}`,
             timestamp: new Date()
           });
         }
@@ -336,7 +341,7 @@
         return alert("Please fill all fields and upload proof photo.");
       }
 
-      const totalEarning = userEarnings.uploader + userEarnings.downloader;
+      const totalEarning = (userEarnings.uploader || 0) + (userEarnings.downloader || 0);
       if (amount > totalEarning) {
         return alert("Insufficient Balance!");
       }
