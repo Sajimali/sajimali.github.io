@@ -478,15 +478,13 @@
     if (!uid) {
       // Clear any existing data
       localStorage.clear();
-      // Redirect to homepage if not logged in
-      window.location.href = 'index.html';
+      window.location.replace('https://sajku1.github.io/index.html');
     } else {
       // Verify with Firebase
       onAuthStateChanged(auth, (user) => {
         if (!user) {
           localStorage.removeItem("userID");
-          // Redirect to homepage if not authenticated
-          window.location.href = 'index.html';
+          window.location.replace('https://sajku1.github.io/index.html');
         } else {
           // User is authenticated, load their data
           document.getElementById('auth-check').style.display = 'none';
@@ -660,7 +658,7 @@
     // Load apps by category with ratings
     async function loadCategory(category) {
       if (!navigator.onLine) {
-        document.getElementById('offline-message').style.display = 'block';
+    document.getElementById('offline-message').style.display = 'block';
         document.getElementById('app-container').innerHTML = '<p style="text-align:center;width:100%;">Internet connection required to load apps</p>';
         return;
       }
