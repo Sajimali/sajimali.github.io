@@ -24,66 +24,39 @@
       color: white;
     }
 
-    /* Updated Category Buttons */
-    .category-tabs button {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      font-weight: bold;
-      cursor: pointer;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 30px;
-      transition: all 0.4s;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      margin: 0 5px;
-      font-size: 14px;
+    /* SignUp Form Styles */
+    #signup-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 1002;
+      display: none;
     }
-
-    .category-tabs button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    }
-
-    /* Unique colors for each category button */
-    .category-tabs button:nth-child(1) { 
-      background: linear-gradient(45deg, #ff00cc, #3333ff);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-    .category-tabs button:nth-child(2) { 
-      background: linear-gradient(45deg, #00ff00, #00ccff);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-    .category-tabs button:nth-child(3) { 
-      background: linear-gradient(45deg, #ff6600, #ffcc00);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-    .category-tabs button:nth-child(4) { 
-      background: linear-gradient(45deg, #9900ff, #ff0066);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-
-    /* New App Update Button in Nav */
-    nav a.update-btn {
-      background: linear-gradient(45deg, #ff0000, #ff6600);
-      padding: 12px;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
+    
+    #signup-form {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: pulse 2s infinite;
-      box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+      flex-direction: column;
+      gap: 10px;
     }
-
-    nav a.update-btn i {
-      animation: spin 3s linear infinite;
+    
+    #signup-form input {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      background: rgba(255,255,255,0.9);
     }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    
+    #signup-form button {
+      background: linear-gradient(to right, #ff00cc, #3333ff);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
     /* Rest of your existing CSS remains exactly the same */
@@ -365,6 +338,18 @@
     You are offline. Please connect to the internet to use Sajku1 Store.
   </div>
   
+  <!-- SignUp Form Container -->
+  <div id="signup-container">
+    <h3>Sign Up</h3>
+    <form id="signup-form">
+      <input type="text" id="username" placeholder="Your Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have account? <a href="login.html">Login</a></p>
+  </div>
+  
   <header>
     <h2>Sajku1 Store</h2>
     <div class="profile" onclick="window.location.href='dashboard.html'">
@@ -408,8 +393,8 @@
   <script type="module">
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot, addDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, onSnapshot, addDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
     import { getMessaging, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
     // Firebase configuration
@@ -429,6 +414,43 @@
     const db = getFirestore(app);
     const messaging = getMessaging(app);
 
+    // Show SignUp Form (Add this button in header if needed)
+    function showSignupForm() {
+      document.getElementById('signup-container').style.display = 'block';
+    }
+
+    // SignUp Form Handler
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        // 1. Create user in Firebase Authentication
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // 2. Save additional data to Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          username: username,
+          email: email,
+          createdAt: new Date(),
+          lastLogin: new Date()
+        });
+
+        // 3. Hide signup form and show success
+        document.getElementById('signup-container').style.display = 'none';
+        alert('SignUp successful!');
+        
+        // 4. Update UI
+        document.getElementById('user-name').textContent = username;
+        
+      } catch (error) {
+        alert(`SignUp failed: ${error.message}`);
+      }
+    });
+
     // Authentication check
     document.getElementById('auth-check').style.display = 'block';
     
@@ -436,15 +458,16 @@
       if (user) {
         localStorage.setItem("userID", user.uid);
         document.getElementById('auth-check').style.display = 'none';
-        checkNetwork(); // only now
+        checkNetwork();
         loadUserData(user.uid);
         setupNotificationListener();
       } else {
         localStorage.removeItem("userID");
-        window.location.href = "login.html"; // or your login page
+        window.location.href = "login.html";
       }
     });
 
+    // [Rest of your existing functions remain exactly the same]
     // New function for full app update
     function fullAppUpdate() {
       if(confirm("क्या आप पूरा ऐप अपडेट करना चाहते हैं? सभी नए फीचर्स और सुधार प्राप्त करें!")) {
@@ -532,7 +555,7 @@
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          document.getElementById("user-name").textContent = data.name;
+          document.getElementById("user-name").textContent = data.username || data.name || "User";
           if (data.photo) document.getElementById("user-photo").src = data.photo;
         }
       } catch (error) {
@@ -633,7 +656,7 @@
             // Send completion notification
             addDoc(collection(db, "notifications"), {
               userId: uid,
-              title: "Download Complete",
+              title: "Download  Complete",
               message: `${appName} installed successfully!`,
               timestamp: new Date(),
               read: false
@@ -728,7 +751,7 @@
     };
   </script>
 </body>
-</html> 
+</html>
 
 
 
