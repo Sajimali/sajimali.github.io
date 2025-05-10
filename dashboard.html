@@ -5,415 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sajku1 Dashboard - Final Updated</title>
   <link rel="manifest" href="/manifest.json">
-  <!-- Firebase Scripts -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
-    import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
-      authDomain: "sajku-store.firebaseapp.com",
-      projectId: "sajku-store",
-      storageBucket: "sajku-store.appspot.com",
-      messagingSenderId: "831227140840",
-      appId: "1:831227140840:web:634cc6248ead6ab186075d",
-      measurementId: "G-BDH8FP9R56"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getFirestore();
-    const storage = getStorage();
-    let messaging;
-
-    // Check internet connection
-    function checkInternet() {
-      if (!navigator.onLine) {
-        document.body.innerHTML = `
-          <div style="text-align:center; padding:50px; color:white; background:red;">
-            <h1>No Internet Connection</h1>
-            <p>This dashboard requires internet to function. Please connect to the internet and refresh the page.</p>
-          </div>
-        `;
-        throw new Error("No internet connection");
-      }
-    }
-    checkInternet();
-    window.addEventListener('offline', checkInternet);
-
-    // Initialize Firebase Messaging if supported
-    (async () => {
-      if (await isSupported()) {
-        messaging = getMessaging(app);
-        initFCM();
-      }
-    })();
-
-    let systemPassword = "";
-    let passwordAttempts = 0;
-    let systemBlocked = false;
-
-    async function getSystemPassword() {
-      const passDoc = await getDoc(doc(db, "admin", "password"));
-      if (passDoc.exists()) {
-        systemPassword = passDoc.data().pass;
-      }
-    }
-    getSystemPassword();
-
-    // FCM Initialization
-    async function initFCM() {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          const currentToken = await getToken(messaging, { 
-            vapidKey: 'BE480YruByxBzIc6J_6YLquolt0b3difUjIQJD1_VrLJ4xbH15Ya72xNAy9k25enW8WoSFYM6IFtUH3JgWNiS0'
-          });
-          if (currentToken && auth.currentUser) {
-            await setDoc(doc(db, "fcm_tokens", auth.currentUser.uid), {
-              token: currentToken,
-              createdAt: new Date()
-            });
-          }
-        }
-
-        onMessage(messaging, (payload) => {
-          console.log('Message received:', payload);
-          showNotification(
-            payload.notification.title || 'New Notification',
-            payload.notification.body || 'You have a new update'
-          );
-        });
-      } catch (error) {
-        console.error('FCM Error:', error);
-      }
-    }
-
-    function showNotification(title, body) {
-      if (Notification.permission === 'granted') {
-        new Notification(title, { 
-          body, 
-          icon: '/icon-192x192.png',
-          vibrate: [200, 100, 200]
-        });
-      } else {
-        // Fallback for browsers that don't support notifications
-        alert(`${title}\n${body}`);
-      }
-    }
-
-    // Combined auth state handler with Firestore check
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        alert("Please login first");
-        localStorage.removeItem("userID");
-        window.location.href = "index.html";
-        return;
-      }
-
-      // Get user data from Firestore
-      getDoc(doc(db, "users", user.uid))
-        .then((docSnapshot) => {
-          if (docSnapshot.exists()) {
-            const data = docSnapshot.data();
-            // User logged in - show dashboard
-            document.getElementById('content').style.display = 'block';
-            document.getElementById('userName').innerText = data.name || "No Name";
-            document.getElementById('userPhoto').src = data.photoURL || "https://via.placeholder.com/150";
-            fetchEarnings(user.uid);
-            fetchUploads(user.uid);
-            setupNotificationListener(user.uid);
-          } else {
-            console.log("No user data available");
-          }
-        })
-        .catch((error) => {
-          console.error("Permission denied:", error);
-          document.getElementById('offline-message').style.display = 'block';
-          document.getElementById('offline-message').textContent = 'Failed to connect to server. Please check your internet connection.';
-        });
-    });
-
-    function setupNotificationListener(uid) {
-      const notificationsRef = collection(db, "notifications");
-      onSnapshot(notificationsRef, (snapshot) => {
-        snapshot.docChanges().forEach(change => {
-          if (change.type === "added" && change.doc.data().userId === uid) {
-            const data = change.doc.data();
-            showNotification(data.title, data.message);
-          }
-        });
-      });
-    }
-
-    window.updateProfileData = async () => {
-      checkInternet();
-      const name = document.getElementById('nameInput').value;
-      const photo = document.getElementById('photoInput').files[0];
-      const user = auth.currentUser;
-      if (!user) return alert("User Not Found!");
-
-      try {
-        if (photo) {
-          const photoRef = storageRef(storage, `profilePics/${user.uid}`);
-          await uploadBytes(photoRef, photo);
-          const photoURL = await getDownloadURL(photoRef);
-          await updateProfile(user, { displayName: name, photoURL });
-          await setDoc(doc(db, "users", user.uid), { 
-            name, 
-            photoURL,
-            lastUpdated: new Date() 
-          }, { merge: true });
-          document.getElementById('userName').innerText = name;
-          document.getElementById('userPhoto').src = photoURL;
-        } else {
-          await updateProfile(user, { displayName: name });
-          await setDoc(doc(db, "users", user.uid), { 
-            name,
-            lastUpdated: new Date()
-          }, { merge: true });
-          document.getElementById('userName').innerText = name;
-        }
-        
-        await addDoc(collection(db, "notifications"), {
-          userId: user.uid,
-          title: "Profile Updated",
-          message: "Your profile has been successfully updated",
-          timestamp: new Date()
-        });
-        
-        alert("Profile Updated Successfully!");
-      } catch (error) {
-        alert("Error updating profile: " + error.message);
-      }
-    };
-
-    window.uploadApp = async () => {
-      checkInternet();
-      const appName = document.getElementById('appName').value.trim();
-      const description = document.getElementById('appDesc').value.trim();
-      const screenshots = document.getElementById('appScreenshots').files;
-      const video = document.getElementById('appVideo').files[0];
-      const apk = document.getElementById('appApk').files[0];
-      const user = auth.currentUser;
-
-      if (!user || !appName || !description || screenshots.length === 0 || !apk) {
-        return alert("Please fill all required fields.");
-      }
-
-      try {
-        const bannerAd = document.getElementById('bannerAd').value || "ca-app-pub-5534254536913287/6837788351";
-        const interstitialAd = document.getElementById('interstitialAd').value || "ca-app-pub-5534254536913287/6044824702";
-        const rewardedAd = document.getElementById('rewardedAd').value || "ca-app-pub-5534254536913287/7212596405";
-        const nativeAd = document.getElementById('nativeAd').value || "ca-app-pub-5534254536913287/3273351397";
-        const appOpenAd = document.getElementById('appOpenAd').value || "ca-app-pub-5534254536913287/7021024718";
-
-        const appDoc = await addDoc(collection(db, "apps"), {
-          uploader: user.uid,
-          appName,
-          description,
-          admob: { banner: bannerAd, interstitial: interstitialAd, rewarded: rewardedAd, native: nativeAd, appOpen: appOpenAd },
-          createdAt: new Date(),
-          approved: false,
-          status: "uploading"
-        });
-
-        const uploads = [];
-        for (let i = 0; i < screenshots.length; i++) {
-          const sRef = storageRef(storage, `apps/${appDoc.id}/screenshot${i}.jpg`);
-          uploads.push(uploadBytes(sRef, screenshots[i]));
-        }
-
-        if (video) {
-          const vRef = storageRef(storage, `apps/${appDoc.id}/video.mp4`);
-          uploads.push(uploadBytes(vRef, video));
-        }
-
-        const apkRef = storageRef(storage, `apps/${appDoc.id}/app.apk`);
-        uploads.push(uploadBytes(apkRef, apk));
-
-        await Promise.all(uploads);
-        
-        await updateDoc(doc(db, "apps", appDoc.id), { status: "pending_approval" });
-        
-        // Send notification
-        await addDoc(collection(db, "notifications"), {
-          userId: user.uid,
-          title: "App Uploaded",
-          message: `${appName} has been uploaded and is pending approval`,
-          timestamp: new Date(),
-          appId: appDoc.id
-        });
-
-        alert("App Uploaded Successfully! Waiting for Admin Approval.");
-      } catch (error) {
-        alert("Error uploading app: " + error.message);
-      }
-    };
-
-    let userEarnings = { uploader: 0, downloader: 0 };
-    async function fetchEarnings(uid) {
-      const earningsRef = doc(db, "earnings", uid);
-      onSnapshot(earningsRef, (docSnapshot) => {
-        const data = docSnapshot.exists() ? docSnapshot.data() : { uploader: 0, downloader: 0 };
-        userEarnings = data;
-        document.getElementById('uploaderEarning').innerText = `${data.uploader || 0} ₹`;
-        document.getElementById('downloaderEarning').innerText = `${data.downloader || 0} ₹`;
-        
-        // Send earning update notification if changed
-        if (data.uploader > 0 || data.downloader > 0) {
-          addDoc(collection(db, "notifications"), {
-            userId: uid,
-            title: "Earnings Updated",
-            message: `Your current balance: Uploader ₹${data.uploader || 0} | Downloader ₹${data.downloader || 0}`,
-            timestamp: new Date()
-          });
-        }
-      });
-    }
-
-    async function fetchUploads(uid) {
-      onSnapshot(collection(db, "apps"), (snapshot) => {
-        const uploads = [];
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.uploader === uid) {
-            const statusBadge = data.approved ? 
-              '<span style="color:green">✓ Approved</span>' : 
-              '<span style="color:orange">⏳ Pending</span>';
-            
-            uploads.push(`
-              <li style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 8px;">
-                <strong>${data.appName}</strong> - ${statusBadge}
-                <div style="margin-top: 5px;">
-                  <button onclick="openApp('${doc.id}')" style="background: #2193b0;">Open</button>
-                  <input type="text" id="interstitialAppId" placeholder="Interstitial Ad ID" value="${data.admob.interstitial}" style="width: 60%;">
-                  <button id="loadInterstitial" style="width: 35%;">Load Ad</button>
-                </div>
-                ${data.status === 'approved' ? 
-                  `<p style="color:green; margin-top:5px;">✓ Ready for downloads</p>` : ''}
-              </li>
-            `);
-          }
-        });
-        document.getElementById('uploadedApps').innerHTML = uploads.join("") || "No Apps Uploaded.";
-        
-        document.querySelectorAll("#loadInterstitial").forEach(btn => {
-          btn.addEventListener("click", function() {
-            const appId = this.parentNode.querySelector("#interstitialAppId").value;
-            alert(`Interstitial Ad Loaded for ${appId}`);
-          });
-        });
-      });
-    }
-
-    window.openApp = (id) => {
-      window.location.href = `view-app.html?id=${id}`;
-    };
-
-    window.logout = async () => {
-      try {
-        await signOut(auth);
-        window.location.href = "index.html";
-      } catch (error) {
-        console.error("Logout error:", error);
-        window.location.href = "index.html";
-      }
-    };
-
-    window.goToHome = () => {
-      window.location.href = "home.html";
-    };
-
-    window.requestWithdraw = async () => {
-      checkInternet();
-      const amount = Number(document.getElementById('withdrawAmount').value);
-      const bankName = document.getElementById('bankName').value.trim();
-      const accountNumber = document.getElementById('accountNumber').value.trim();
-      const ifscCode = document.getElementById('ifscCode').value.trim();
-      const proofPhoto = document.getElementById('proofPhoto').files[0];
-      const user = auth.currentUser;
-      
-      if (!user || amount <= 0 || !bankName || !accountNumber || !ifscCode || !proofPhoto) {
-        return alert("Please fill all fields and upload proof photo.");
-      }
-
-      const totalEarning = (userEarnings.uploader || 0) + (userEarnings.downloader || 0);
-      if (amount > totalEarning) {
-        return alert("Insufficient Balance!");
-      }
-
-      try {
-        const proofRef = storageRef(storage, `withdrawProofs/${user.uid}_${Date.now()}.jpg`);
-        await uploadBytes(proofRef, proofPhoto);
-        const proofURL = await getDownloadURL(proofRef);
-
-        await addDoc(collection(db, "withdraws"), {
-          userId: user.uid,
-          amount,
-          bankName,
-          accountNumber,
-          ifscCode,
-          proofPhotoURL: proofURL,
-          requestedAt: new Date(),
-          status: "pending"
-        });
-
-        // Send notification
-        await addDoc(collection(db, "notifications"), {
-          userId: user.uid,
-          title: "Withdrawal Requested",
-          message: `Your withdrawal request of ₹${amount} has been submitted`,
-          timestamp: new Date()
-        });
-
-        alert("Withdraw Request Submitted Successfully with Proof!");
-      } catch (error) {
-        alert("Error processing withdrawal: " + error.message);
-      }
-    };
-
-    window.changePassword = async () => {
-      checkInternet();
-      if (systemBlocked) {
-        return alert("System permanently blocked due to wrong password attempts.");
-      }
-      const enteredPassword = prompt("Enter System Password:");
-      if (enteredPassword !== systemPassword) {
-        passwordAttempts++;
-        if (passwordAttempts >= 3) {
-          systemBlocked = true;
-          alert("System permanently blocked!");
-        } else {
-          alert("Wrong Password! Attempts left: " + (3 - passwordAttempts));
-        }
-        return;
-      }
-      const newPassword = document.getElementById('newPassword').value.trim();
-      if (!newPassword) return alert("Please enter a new password.");
-      await setDoc(doc(db, "admin", "password"), { pass: newPassword });
-      systemPassword = newPassword;
-      passwordAttempts = 0;
-      alert("Password Changed Successfully!");
-    };
-
-    // Add powerful lighting effect
-    function addLightingEffect() {
-      const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
-      let currentIndex = 0;
-      
-      setInterval(() => {
-        document.body.style.boxShadow = `0 0 50px ${colors[currentIndex]}`;
-        currentIndex = (currentIndex + 1) % colors.length;
-      }, 500);
-    }
-    addLightingEffect();
-  </script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
   <style>
+    /* Preloader Styles */
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #FFF;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Existing Dashboard Styles */
     body {
       background: linear-gradient(135deg, #2193b0, #6dd5ed);
       font-family: 'Arial', sans-serif;
@@ -433,6 +56,11 @@
     .dashboard {
       max-width: 900px;
       margin: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .dashboard.loaded {
+      opacity: 1;
     }
     .box {
       background: white;
@@ -567,19 +195,25 @@
     }
     .power-button:hover {
       transform: translateY(-3px);
-      box-shadow: 0 7px 20pxrgba(255, 65, 108, 0.6);
+      box-shadow: 0 7px 20px rgba(255, 65, 108, 0.6);
     }
   </style>
 </head>
 
 <body>
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Dashboard Content -->
   <div id="content" style="display:none;">
     <div id="notification-bell" onclick="showNotifications()">
       <i class="fas fa-bell"></i>
       <span id="notification-count" style="display: none;">0</span>
     </div>
 
-    <div class="dashboard">
+    <div class="dashboard" id="dashboard">
       <div class="warning">
         System ya Account ka misuse karoge to ID block ho sakti hai.
       </div>
@@ -649,50 +283,471 @@
         <button onclick="changePassword()" style="background: #f44336;">Change Password</button>
       </div>
     </div>
+  </div>
 
-    <script>
-      // Notification bell functionality
-      async function showNotifications() {
-        const user = auth.currentUser;
-        if (!user) return;
-        
-        const notificationsRef = collection(db, "notifications");
-        const querySnapshot = await getDocs(query(notificationsRef, where("userId", "==", user.uid), orderBy("timestamp", "desc"), limit(10)));
-        
-        let notificationHTML = '<h2>Your Notifications</h2><ul>';
-        querySnapshot.forEach(doc => {
-          const data = doc.data();
-          notificationHTML += `<li><strong>${data.title}</strong><br>${data.message}</li>`;
+  <!-- Firebase Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection, onSnapshot, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+    import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCO6p2DX7cb19ELNHbsDl0ZRQ7kgMvUzGs",
+      authDomain: "sajku-store.firebaseapp.com",
+      projectId: "sajku-store",
+      storageBucket: "sajku-store.appspot.com",
+      messagingSenderId: "831227140840",
+      appId: "1:831227140840:web:634cc6248ead6ab186075d",
+      measurementId: "G-BDH8FP9R56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore();
+    const storage = getStorage();
+    let messaging;
+
+    // Check internet connection
+    function checkInternet() {
+      if (!navigator.onLine) {
+        document.body.innerHTML = `
+          <div style="text-align:center; padding:50px; color:white; background:red;">
+            <h1>No Internet Connection</h1>
+            <p>This dashboard requires internet to function. Please connect to the internet and refresh the page.</p>
+          </div>
+        `;
+        throw new Error("No internet connection");
+      }
+    }
+    
+    // Initialize Firebase Messaging if supported
+    (async () => {
+      if (await isSupported()) {
+        messaging = getMessaging(app);
+        initFCM();
+      }
+    })();
+
+    let systemPassword = "";
+    let passwordAttempts = 0;
+    let systemBlocked = false;
+
+    async function getSystemPassword() {
+      const passDoc = await getDoc(doc(db, "admin", "password"));
+      if (passDoc.exists()) {
+        systemPassword = passDoc.data().pass;
+      }
+    }
+
+    // FCM Initialization
+    async function initFCM() {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          const currentToken = await getToken(messaging, { 
+            vapidKey: 'BE480YruByxBzIc6J_6YLquolt0b3difUjIQJD1_VrLJ4xbH15Ya72xNAy9k25enW8WoSFYM6IFtUH3JgWNiS0'
+          });
+          if (currentToken && auth.currentUser) {
+            await setDoc(doc(db, "fcm_tokens", auth.currentUser.uid), {
+              token: currentToken,
+              createdAt: new Date()
+            });
+          }
+        }
+
+        onMessage(messaging, (payload) => {
+          console.log('Message received:', payload);
+          showNotification(
+            payload.notification.title || 'New Notification',
+            payload.notification.body || 'You have a new update'
+          );
         });
-        notificationHTML += '</ul>';
-        
-        alert(notificationHTML);
+      } catch (error) {
+        console.error('FCM Error:', error);
+      }
+    }
+
+    function showNotification(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { 
+          body, 
+          icon: '/icon-192x192.png',
+          vibrate: [200, 100, 200]
+        });
+      } else {
+        alert(`${title}\n${body}`);
+      }
+    }
+
+    // Combined auth state handler with Firestore check
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Please login first");
+        localStorage.removeItem("userID");
+        window.location.href = "index.html";
+        return;
       }
 
-      // Check for new notifications periodically
-      setInterval(async () => {
-        const user = auth.currentUser;
-        if (!user) return;
+      try {
+        checkInternet();
+        await getSystemPassword();
         
-        const notificationsRef = collection(db, "notifications");
-        const querySnapshot = await getDocs(query(
-          notificationsRef, 
-          where("userId", "==", user.uid),
-          where("timestamp", ">", new Date(Date.now() - 24 * 60 * 60 * 1000)),
-          orderBy("timestamp", "desc")
-        ));
+        // Get user data from Firestore
+        const docSnapshot = await getDoc(doc(db, "users", user.uid));
         
-        const count = querySnapshot.size;
-        const countElement = document.getElementById('notification-count');
-        if (count > 0) {
-          countElement.style.display = 'flex';
-          countElement.innerText = count;
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data();
+          
+          // Update UI
+          document.getElementById('userName').textContent = data.name || "No Name";
+          document.getElementById('userPhoto').src = data.photoURL || "https://via.placeholder.com/150";
+          
+          // Fetch additional data
+          fetchEarnings(user.uid);
+          fetchUploads(user.uid);
+          setupNotificationListener(user.uid);
+          
+          // Show content
+          document.getElementById('content').style.display = 'block';
+          setTimeout(() => {
+            document.getElementById('dashboard').classList.add('loaded');
+            document.getElementById('preloader').style.display = 'none';
+          }, 500);
         } else {
-          countElement.style.display = 'none';
+          throw new Error("User data not found");
         }
-      }, 60000);
-    </script>
-  </div>
+      } catch (error) {
+        console.error("Error loading dashboard:", error);
+        document.getElementById('preloader').innerHTML = `
+          <div style="color: white; text-align: center;">
+            <h2>Error Loading Dashboard</h2>
+            <p>${error.message}</p>
+            <button onclick="window.location.href='index.html'" style="padding: 10px 20px; margin-top: 20px;">
+              Go Back to Home
+            </button>
+          </div>
+        `;
+      }
+    });
+
+    function setupNotificationListener(uid) {
+      const notificationsRef = collection(db, "notifications");
+      onSnapshot(notificationsRef, (snapshot) => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === "added" && change.doc.data().userId === uid) {
+            const data = change.doc.data();
+            showNotification(data.title, data.message);
+          }
+        });
+      });
+    }
+
+    window.updateProfileData = async () => {
+      checkInternet();
+      const name = document.getElementById('nameInput').value;
+      const photo = document.getElementById('photoInput').files[0];
+      const user = auth.currentUser;
+      if (!user) return alert("User Not Found!");
+
+      try {
+        if (photo) {
+          const photoRef = storageRef(storage, `profilePics/${user.uid}`);
+          await uploadBytes(photoRef, photo);
+          const photoURL = await getDownloadURL(photoRef);
+          await updateProfile(user, { displayName: name, photoURL });
+          await setDoc(doc(db, "users", user.uid), { 
+            name, 
+            photoURL,
+            lastUpdated: new Date() 
+          }, { merge: true });
+          document.getElementById('userName').innerText = name;
+          document.getElementById('userPhoto').src = photoURL;
+        } else {
+          await updateProfile(user, { displayName: name });
+          await setDoc(doc(db, "users", user.uid), { 
+            name,
+            lastUpdated: new Date()
+          }, { merge: true });
+          document.getElementById('userName').innerText = name;
+        }
+        
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "Profile Updated",
+          message: "Your profile has been successfully updated",
+          timestamp: new Date()
+        });
+        
+        alert("Profile Updated Successfully!");
+      } catch (error) {
+        alert("Error updating profile: " + error.message);
+      }
+    };
+
+    window.uploadApp = async () => {
+      checkInternet();
+      const appName = document.getElementById('appName').value.trim();
+      const description = document.getElementById('appDesc').value.trim();
+      const screenshots = document.getElementById('appScreenshots').files;
+      const video = document.getElementById('appVideo').files[0];
+      const apk = document.getElementById('appApk').files[0];
+      const user = auth.currentUser;
+
+      if (!user || !appName || !description || screenshots.length === 0 || !apk) {
+        return alert("Please fill all required fields.");
+      }
+
+      try {
+        const bannerAd = document.getElementById('bannerAd').value || "ca-app-pub-5534254536913287/6837788351";
+        const interstitialAd = document.getElementById('interstitialAd').value || "ca-app-pub-5534254536913287/6044824702";
+        const rewardedAd = document.getElementById('rewardedAd').value || "ca-app-pub-5534254536913287/7212596405";
+        const nativeAd = document.getElementById('nativeAd').value || "ca-app-pub-5534254536913287/3273351397";
+        const appOpenAd = document.getElementById('appOpenAd').value || "ca-app-pub-5534254536913287/7021024718";
+
+        const appDoc = await addDoc(collection(db, "apps"), {
+          uploader: user.uid,
+          appName,
+          description,
+          admob: { banner: bannerAd, interstitial: interstitialAd, rewarded: rewardedAd, native: nativeAd, appOpen: appOpenAd },
+          createdAt: new Date(),
+          approved: false,
+          status: "uploading"
+        });
+
+        const uploads = [];
+        for (let i = 0; i < screenshots.length; i++) {
+          const sRef = storageRef(storage, `apps/${appDoc.id}/screenshot${i}.jpg`);
+          uploads.push(uploadBytes(sRef, screenshots[i]));
+        }
+
+        if (video) {
+          const vRef = storageRef(storage, `apps/${appDoc.id}/video.mp4`);
+          uploads.push(uploadBytes(vRef, video));
+        }
+
+        const apkRef = storageRef(storage, `apps/${appDoc.id}/app.apk`);
+        uploads.push(uploadBytes(apkRef, apk));
+
+        await Promise.all(uploads);
+        
+        await updateDoc(doc(db, "apps", appDoc.id), { status: "pending_approval" });
+        
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "App Uploaded",
+          message: `${appName} has been uploaded and is pending approval`,
+          timestamp: new Date(),
+          appId: appDoc.id
+        });
+
+        alert("App Uploaded Successfully! Waiting for Admin Approval.");
+      } catch (error) {
+        alert("Error uploading app: " + error.message);
+      }
+    };
+
+    let userEarnings = { uploader: 0, downloader: 0 };
+    async function fetchEarnings(uid) {
+      const earningsRef = doc(db, "earnings", uid);
+      onSnapshot(earningsRef, (docSnapshot) => {
+        const data = docSnapshot.exists() ? docSnapshot.data() : { uploader: 0, downloader: 0 };
+        userEarnings = data;
+        document.getElementById('uploaderEarning').innerText = `${data.uploader || 0} ₹`;
+        document.getElementById('downloaderEarning').innerText = `${data.downloader || 0} ₹`;
+        
+        if (data.uploader > 0 || data.downloader > 0) {
+          addDoc(collection(db, "notifications"), {
+            userId: uid,
+            title: "Earnings Updated",
+            message: `Your current balance: Uploader ₹${data.uploader || 0} | Downloader ₹${data.downloader || 0}`,
+            timestamp: new Date()
+          });
+        }
+      });
+    }
+
+    async function fetchUploads(uid) {
+      onSnapshot(collection(db, "apps"), (snapshot) => {
+        const uploads = [];
+        snapshot.forEach(doc => {
+    const data = doc.data();
+          if (data.uploader === uid) {
+            const statusBadge = data.approved ? 
+              '<span style="color:green">✓ Approved</span>' : 
+              '<span style="color:orange">⏳ Pending</span>';
+            
+            uploads.push(`
+              <li style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+                <strong>${data.appName}</strong> - ${statusBadge}
+                <div style="margin-top: 5px;">
+                  <button onclick="openApp('${doc.id}')" style="background: #2193b0;">Open</button>
+                  <input type="text" id="interstitialAppId" placeholder="Interstitial Ad ID" value="${data.admob.interstitial}" style="width: 60%;">
+                  <button id="loadInterstitial" style="width: 35%;">Load Ad</button>
+                </div>
+                ${data.status === 'approved' ? 
+                  `<p style="color:green; margin-top:5px;">✓ Ready for downloads</p>` : ''}
+              </li>
+            `);
+          }
+        });
+        document.getElementById('uploadedApps').innerHTML = uploads.join("") || "No Apps Uploaded.";
+        
+        document.querySelectorAll("#loadInterstitial").forEach(btn => {
+          btn.addEventListener("click", function() {
+            const appId = this.parentNode.querySelector("#interstitialAppId").value;
+            alert(`Interstitial Ad Loaded for ${appId}`);
+          });
+        });
+      });
+    }
+
+    window.openApp = (id) => {
+      window.location.href = `view-app.html?id=${id}`;
+    };
+
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        window.location.href = "index.html";
+      } catch (error) {
+        console.error("Logout error:", error);
+        window.location.href = "index.html";
+      }
+    };
+
+    window.goToHome = () => {
+      window.location.href = "home.html";
+    };
+
+    window.requestWithdraw = async () => {
+      checkInternet();
+      const amount = Number(document.getElementById('withdrawAmount').value);
+      const bankName = document.getElementById('bankName').value.trim();
+      const accountNumber = document.getElementById('accountNumber').value.trim();
+      const ifscCode = document.getElementById('ifscCode').value.trim();
+      const proofPhoto = document.getElementById('proofPhoto').files[0];
+      const user = auth.currentUser;
+      
+      if (!user || amount <= 0 || !bankName || !accountNumber || !ifscCode || !proofPhoto) {
+        return alert("Please fill all fields and upload proof photo.");
+      }
+
+      const totalEarning = (userEarnings.uploader || 0) + (userEarnings.downloader || 0);
+      if (amount > totalEarning) {
+        return alert("Insufficient Balance!");
+      }
+
+      try {
+        const proofRef = storageRef(storage, `withdrawProofs/${user.uid}_${Date.now()}.jpg`);
+        await uploadBytes(proofRef, proofPhoto);
+        const proofURL = await getDownloadURL(proofRef);
+
+        await addDoc(collection(db, "withdraws"), {
+          userId: user.uid,
+          amount,
+          bankName,
+          accountNumber,
+          ifscCode,
+          proofPhotoURL: proofURL,
+          requestedAt: new Date(),
+          status: "pending"
+        });
+
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "Withdrawal Requested",
+          message: `Your withdrawal request of ₹${amount} has been submitted`,
+          timestamp: new Date()
+        });
+
+        alert("Withdraw Request Submitted Successfully with Proof!");
+      } catch (error) {
+        alert("Error processing withdrawal: " + error.message);
+      }
+    };
+
+    window.changePassword = async () => {
+      checkInternet();
+      if (systemBlocked) {
+        return alert("System permanently blocked due to wrong password attempts.");
+      }
+      const enteredPassword = prompt("Enter System Password:");
+      if (enteredPassword !== systemPassword) {
+        passwordAttempts++;
+        if (passwordAttempts >= 3) {
+          systemBlocked = true;
+          alert("System permanently blocked!");
+        } else {
+          alert("Wrong Password! Attempts left: " + (3 - passwordAttempts));
+        }
+        return;
+      }
+      const newPassword = document.getElementById('newPassword').value.trim();
+      if (!newPassword) return alert("Please enter a new password.");
+      await setDoc(doc(db, "admin", "password"), { pass: newPassword });
+      systemPassword = newPassword;
+      passwordAttempts = 0;
+      alert("Password Changed Successfully!");
+    };
+
+    window.showNotifications = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      const notificationsRef = collection(db, "notifications");
+      const querySnapshot = await getDocs(query(notificationsRef, where("userId", "==", user.uid), orderBy("timestamp", "desc"), limit(10));
+      
+      let notificationHTML = '<h2>Your Notifications</h2><ul>';
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        notificationHTML += `<li><strong>${data.title}</strong><br>${data.message}</li>`;
+      });
+      notificationHTML += '</ul>';
+      
+      alert(notificationHTML);
+    };
+
+    // Check for new notifications periodically
+    setInterval(async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      const notificationsRef = collection(db, "notifications");
+      const querySnapshot = await getDocs(query(
+        notificationsRef, 
+        where("userId", "==", user.uid),
+        where("timestamp", ">", new Date(Date.now() - 24 * 60 * 60 * 1000)),
+        orderBy("timestamp", "desc")
+      ));
+      
+      const count = querySnapshot.size;
+      const countElement = document.getElementById('notification-count');
+      if (count > 0) {
+        countElement.style.display = 'flex';
+        countElement.innerText = count;
+      } else {
+        countElement.style.display = 'none';
+      }
+    }, 60000);
+
+    // Add lighting effect after everything loads
+    function addLightingEffect() {
+      const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+      let currentIndex = 0;
+      
+      setInterval(() => {
+        document.body.style.boxShadow = `0 0 50px ${colors[currentIndex]}`;
+        currentIndex = (currentIndex + 1) % colors.length;
+      }, 500);
+    }
+    
+    // Start lighting effect when dashboard loads
+    document.getElementById('dashboard').addEventListener('transitionend', () => {
+      addLightingEffect();
+    });
+  </script>
 </body>
 </html>
       
